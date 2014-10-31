@@ -103,7 +103,7 @@ CC += $(shell if [ "`uname -m`" = "sparc64" -o "`uname -m`" = "sun4u" ]; then ec
 COCOA_LIBS=$(shell if [ "`uname -s`" = "Darwin" ]; then echo "-F/System/Library/Frameworks -framework Cocoa -framework IOKit"; fi)
 
 CFLAGS = -O2 -Wall $(DEBUG) $(INCLUDES) $(DEFINES)
-LDFLAGS = $(DEBUG) $(X49GP_LDFLAGS) $(GDB_LDFLAGS)
+LDFLAGS = $(DEBUG) $(X49GP_LDFLAGS) $(GDB_LDFLAGS) -lm -lz
 LDLIBS = $(X49GP_LIBS) $(GDB_LIBS) $(COCOA_LIBS)
 
 MAKEDEPEND = $(CC) -MM
