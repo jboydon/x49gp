@@ -1495,9 +1495,10 @@ fprintf(stderr, "%s:%u: type %u, button %u\n", __FUNCTION__, __LINE__, event->ty
 #endif
 
 	if (key->rowbit) {
-		s3c2410_io_port_g_set_bit(x49gp, key->eint, 1);
 		x49gp->keybycol[key->column] |= key->rowbit;
 		x49gp->keybyrow[key->row] |= key->columnbit;
+        s3c2410_io_port_g_update(x49gp);
+
 	} else {
 		s3c2410_io_port_f_set_bit(x49gp, key->eint, 1);
 	}
@@ -1550,9 +1551,10 @@ x49gp_ui_button_release(GtkWidget *widget, GdkEventButton *event,
 		key = button->key;
 
 		if (key->rowbit) {
-			s3c2410_io_port_g_set_bit(x49gp, key->eint, 0);
 			x49gp->keybycol[key->column] &= ~(key->rowbit);
 			x49gp->keybyrow[key->row] &= ~(key->columnbit);
+            s3c2410_io_port_g_update(x49gp);
+
 		} else {
 			s3c2410_io_port_f_set_bit(x49gp, key->eint, 0);
 		}
