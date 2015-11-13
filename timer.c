@@ -232,11 +232,9 @@ x49gp_main_loop_wait(x49gp_t *x49gp, int timeout)
 {
 // printf("%s: timeout: %d\n", __FUNCTION__, timeout);
 
-#if 0
 	if (gdb_poll(x49gp->env)) {
 		gdb_handlesig(x49gp->env, 0);
 	} else
-#endif
 	poll(NULL, 0, timeout);
 
 	if (x49gp->arm_idle != X49GP_ARM_OFF) {
@@ -277,11 +275,9 @@ printf("PC %08x: SRAM %08x: %08x %08x %08x <%08x>\n", x49gp->env->regs[15], 0x08
 * ((uint32_t *) &x49gp->sram[0x0a0c]) = 0x00000000;
 }
 
-#if 0
 			if (ret == EXCP_DEBUG) {
 				gdb_handlesig(x49gp->env, SIGTRAP);
 			}
-#endif
 
 			if (x49gp->arm_idle != prev_idle) {
 				if (x49gp->arm_idle == X49GP_ARM_OFF) {

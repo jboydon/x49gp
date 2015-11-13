@@ -25,6 +25,14 @@
 
 #include "gdbstub.h"
 
+static void *oom_check(void *ptr)
+{
+    if (ptr == NULL) {
+        abort();
+    }
+    return ptr;
+}
+
 static x49gp_t *x49gp;
 
 #ifdef QEMU_OLD // LD TEMPO HACK
@@ -383,7 +391,7 @@ printf("%s:%u: x49gp: %p\n", __FUNCTION__, __LINE__, x49gp);
 		exit(1);
 	}
 
-	error = x49gp_modules_load(x49gp, argv[1]);
+    error = x49gp_modules_load(x49gp, argv[argc-1]);
 	if (error) {
 		if (error != -EAGAIN) {
 			exit(1);
@@ -408,15 +416,17 @@ printf("%s:%u: x49gp: %p\n", __FUNCTION__, __LINE__, x49gp);
 	x49gp_mod_timer(x49gp->lcd_timer, x49gp_get_clock());
 
 
-#if 0
-	gdbserver_start(1234);
-	gdb_handlesig(x49gp->env, 0);
-#endif
+    if(argc>=3) {
+        if((argv[1][0]=='-')&&(argv[1][1]=='d')&&(argv[1][2]==0)) {
+    gdbserver_start(1234);
+    gdb_handlesig(x49gp->env, 0);
+        }
+    }
 
 	x49gp_main_loop(x49gp);
 
 
-	x49gp_modules_save(x49gp, argv[1]);
+    x49gp_modules_save(x49gp, argv[argc-1]);
 	x49gp_modules_exit(x49gp);
 
 
