@@ -265,10 +265,10 @@ s3c2410_rtc_read(void *opaque, target_phys_addr_t offset)
 
 	if (S3C2410_RTC_BCDSEC <= offset && offset <= S3C2410_RTC_BCDYEAR) {
 		struct tm *tm;
-		time_t t;
+		struct timeval tv;
 
-		t = time(0);
-		tm = localtime(&t);
+		gettimeofday(&tv, NULL);
+		tm = localtime(&tv.tv_sec);
 
 		switch (offset) {
 		case S3C2410_RTC_BCDSEC:
