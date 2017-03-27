@@ -11,19 +11,19 @@ Prereqs:
   * Install XQuartz, Xcode (from your installation media) in that order.
   * Install Macports (macports.org), then:
 ```
-  sudo port install gtk2 pkgconfig gcc6
-  sudo port select --set gcc mp-gcc6
-  export PATH=/opt/local/bin:$PATH
+sudo port install gtk2 pkgconfig gcc6
+sudo port select --set gcc mp-gcc6
+export PATH=/opt/local/bin:$PATH
 ```
 
 * Ubuntu:
 ```
-  sudo apt-get install libgtk2.0-dev 
+sudo apt-get install libgtk2.0-dev 
 ```
 
 * RedHat/CentOS:
 ```
-  sudo yum install subversion gtk2-devel
+sudo yum install subversion gtk2-devel
 ```
 
 ------------------------------------------------------------------------
@@ -157,9 +157,9 @@ make flash-49g+ flash-50g flash-noboot sram s3c2410-sram
 Known Limitations:
 
 * HPGCC SD Card I/O
-  . libfsystem unavailable.
-  . f* calls unstable (HPGCC2)
-  . f* calls stable (HPGCC3)
+  - `libfsystem` unavailable.
+  - `f*` calls unstable (HPGCC2)
+  - `f*` calls stable (HPGCC3)
 
 ------------------------------------------------------------------------
 
