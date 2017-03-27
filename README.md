@@ -10,20 +10,21 @@ Prereqs:
 
   * Install XQuartz, Xcode (from your installation media) in that order.
   * Install Macports (macports.org), then:
-
+```
   sudo port install gtk2 pkgconfig gcc6
   sudo port select --set gcc mp-gcc6
   export PATH=/opt/local/bin:$PATH
-
+```
 
 * Ubuntu:
-
+```
   sudo apt-get install libgtk2.0-dev 
-
+```
 
 * RedHat/CentOS:
-
+```
   sudo yum install subversion gtk2-devel
+```
 
 ------------------------------------------------------------------------
 
