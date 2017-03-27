@@ -1,33 +1,27 @@
-Additional note: August 22, 2013
-
-Updated this so that it'll compile on Ubuntu 12.04.
-
---Nicholas Kirchner
-
 Quick Start Guide
-04/25/2010
+03/27/2017
 Egan Ford <egan@sense.net>
 
 NOTE: READ ALL INSTRUCTIONS
 
 Prereqs:
 
-* OS/X 10.6 64-bit:
+* MacOS 10.12 64-bit:
 
-  * Install X11, Xcode (from your installation media) in that order.
+  * Install XQuartz, Xcode (from your installation media) in that order.
   * Install Macports (macports.org), then:
 
-  sudo port install gtk2
-  sudo port install pkgconfig
+  sudo port install gtk2 pkgconfig gcc6
+  sudo port select --set gcc mp-gcc6
+  export PATH=/opt/local/bin:$PATH
 
 
-* Ubuntu 9.04 32-bit, 9.04 64-bit, 9.10 32-bit, 9.10 64-bit:
+* Ubuntu:
 
-  sudo apt-get install libgtk2.0-dev
-  sudo apt-get install subversion
+  sudo apt-get install libgtk2.0-dev 
 
 
-* RedHat/CentOS 5.4 64-bit, Fedora 12 64-bit:
+* RedHat/CentOS:
 
   sudo yum install subversion gtk2-devel
 
@@ -39,7 +33,7 @@ Start up X11 and use xterm
 
 Download x49gp source:
 
-svn co http://x49gp.svn.sourceforge.net/svnroot/x49gp x49gp
+git clone https://github.com/datajerk/x49gp.git
 
 ------------------------------------------------------------------------
 
@@ -120,7 +114,7 @@ Restore backup:
 
 BACKUP
 3
-->TAG
+-\>TAG
 RESTORE
 
 Install ARMToolbox (HPGCC2):
@@ -128,7 +122,7 @@ Install ARMToolbox (HPGCC2):
 2
 SETUP.BIN
 3
-->TAG
+-\>TAG
 RCL
 EVAL
 (Right Click ON, Left Click C)
@@ -161,3 +155,14 @@ Known Limitations:
   . libfsystem unavailable.
   . f* calls unstable (HPGCC2)
   . f* calls stable (HPGCC3)
+
+------------------------------------------------------------------------
+
+Change Log:
+
+Additional note: August 22, 2013
+
+Updated this so that it'll compile on Ubuntu 12.04.
+
+--Nicholas Kirchner
+
