@@ -1,0 +1,3 @@
+rm flash-50g flash-noboot
+make flash-50g
+
