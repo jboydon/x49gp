@@ -45,7 +45,7 @@
 #include <signal.h>
 #endif
 
-#define DEBUG_GDB
+//#define DEBUG_GDB
 
 enum RSState {
     RS_IDLE,
@@ -455,7 +455,7 @@ static void gdb_read_byte(GDBState *s, int ch)
     int i, csum;
     char reply[1];
 
-printf("%s: state %u, byte %02x (%c)\n", __FUNCTION__, s->state, ch, ch);
+//printf("%s: state %u, byte %02x (%c)\n", __FUNCTION__, s->state, ch, ch);
 fflush(stdout);
 
         switch(s->state) {
@@ -515,7 +515,7 @@ gdb_handlesig (CPUState *env, int sig)
 
   s = &gdbserver_state;
 
-printf("%s: sig: %u\n", __FUNCTION__, sig);
+//printf("%s: sig: %u\n", __FUNCTION__, sig);
 fflush(stdout);
 
   /* disable single step if it was enabled */
@@ -537,7 +537,7 @@ fflush(stdout);
         {
           int i;
 
-printf("%s: read: %d\n", __FUNCTION__, n);
+//printf("%s: read: %d\n", __FUNCTION__, n);
 fflush(stdout);
 
           for (i = 0; i < n; i++)
@@ -573,7 +573,7 @@ gdb_poll (CPUState *env)
 		return 0;
 	}
 
-printf("%s: revents: %08x\n", __FUNCTION__, pfd.revents);
+//printf("%s: revents: %08x\n", __FUNCTION__, pfd.revents);
 fflush(stdout);
 
 	if (pfd.revents & (POLLIN | POLLHUP))
