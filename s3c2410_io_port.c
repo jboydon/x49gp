@@ -356,111 +356,124 @@ static uint32_t lcd_data = 0;
 }
 
 void
-s3c2410_io_port_g_set_bit(x49gp_t *x49gp, int n, uint32_t set)
+s3c2410_io_port_g_update(x49gp_t *x49gp)
 {
 	s3c2410_io_port_t *io = x49gp->s3c2410_io_port;
-	uint32_t value, change;
-	int pending;
-#ifdef DEBUG_S3C2410_IO_PORT
-	int level = 0;
-#endif
+    uint32_t oldvalue, change;
+    int n;
 
-	if (n > 7)
-		return;
-
-//	g_mutex_lock(x49gp->memlock);
-
+    oldvalue=io->gpgdat;
 	io->gpgdat = s3c2410_scan_keys(x49gp, io->gpgcon, io->gpgdat);
 
-#ifdef DEBUG_S3C2410_IO_PORT
-	printf("IO_PORT: %s GPG bit %u\n", set ? "assert" : "deassert", n);
-	printf("IO_PORT: GPGCON %08x, GPGDAT %08x\n", io->gpgcon, io->gpgdat);
-#endif
+    change=io->gpgdat^oldvalue;
 
-	if (0 == set) {
-		value = 1;
-	} else {
-		if ((((io->gpgcon >> (2 * (n + 8))) & 3) == 1) &&
-		    (((io->gpgdat >> (n + 8)) & 1) == 0)) {
-			value = 0;
-		} else {
-			value = 1;
-		}
-	}
 
-#ifdef DEBUG_S3C2410_IO_PORT
-	printf("IO_PORT: GPG bit %u value: %u\n", n, value);
-#endif
+    for(n=0;n<15;++n) {
 
-	change = 0;
 	switch ((io->gpgcon >> (2 * n)) & 3) {
-	case 0:	/* Input */
-		io->gpgdat &= ~(1 << n);
-		io->gpgdat |= (value << n);
-		goto out;
 
 	case 2: /* Interrupt */
-		change = io->gpgdat ^ (value << n);
-		io->gpgdat &= ~(1 << n);
-		io->gpgdat |= (value << n);
+    {
+        if(n+8<=15) {
+            // EINT 8-15
+        switch ((io->extint1 >> (4 * n)) & 7) {
+        case 0:	/* Low Level */
+            if (!(io->gpgdat & (1 << n)))
+            {
+                io->eintpend |= 1 << (n + 8);
+                if (io->eintpend & ~(io->eintmask))
+                    s3c2410_intc_assert(x49gp, EINT8_23, 1);
+            }
+            break;
+        case 1:	/* High Level */
+            if (io->gpgdat & (1 << n)) {
+                    io->eintpend |= 1 << (n + 8);
+                    if (io->eintpend & ~(io->eintmask))
+                        s3c2410_intc_assert(x49gp, EINT8_23, 1);
+                }
+            break;
+        case 2:	/* Falling Edge */
+        case 3:
+            if ((change & (1 << n)) && !(io->gpgdat & (1 << n))) {
+                io->eintpend |= 1 << (n + 8);
+                if (io->eintpend & ~(io->eintmask))
+                    s3c2410_intc_assert(x49gp, EINT8_23, 1);
+            }
+            break;
+        case 4:	/* Rising Edge */
+        case 5:
+            if ((change & (1 << n)) && (io->gpgdat & (1 << n))) {
+                io->eintpend |= 1 << (n + 8);
+                if (io->eintpend & ~(io->eintmask))
+                    s3c2410_intc_assert(x49gp, EINT8_23, 1);
+            }
+            break;
+        case 6:	/* Any Edge */
+        case 7:
+            if (change & (1 << n)) {
+                io->eintpend |= 1 << (n + 8);
+                if (io->eintpend & ~(io->eintmask))
+                    s3c2410_intc_assert(x49gp, EINT8_23, 1);
+            }
 		break;
+            }
+        }
+        else {
+            // EINT 16-23
+            switch ((io->extint2 >> (4 * (n-8))) & 7) {
+            case 0:	/* Low Level */
+                if (!(io->gpgdat & (1 << n)))
+                {
+                    io->eintpend |= 1 << (n + 8);
+                    if (io->eintpend & ~(io->eintmask))
+                        s3c2410_intc_assert(x49gp, EINT8_23, 1);
+                }
+                break;
+            case 1:	/* High Level */
+                if (io->gpgdat & (1 << n)) {
+                        io->eintpend |= 1 << (n + 8);
+                        if (io->eintpend & ~(io->eintmask))
+                            s3c2410_intc_assert(x49gp, EINT8_23, 1);
+                    }
+                break;
+            case 2:	/* Falling Edge */
+            case 3:
+                if ((change & (1 << n)) && !(io->gpgdat & (1 << n))) {
+                    io->eintpend |= 1 << (n + 8);
+                    if (io->eintpend & ~(io->eintmask))
+                        s3c2410_intc_assert(x49gp, EINT8_23, 1);
+                }
+                break;
+            case 4:	/* Rising Edge */
+            case 5:
+                if ((change & (1 << n)) && (io->gpgdat & (1 << n))) {
+                    io->eintpend |= 1 << (n + 8);
+                    if (io->eintpend & ~(io->eintmask))
+                        s3c2410_intc_assert(x49gp, EINT8_23, 1);
+                }
+                break;
+            case 6:	/* Any Edge */
+            case 7:
+                if (change & (1 << n)) {
+                    io->eintpend |= 1 << (n + 8);
+                    if (io->eintpend & ~(io->eintmask))
+                        s3c2410_intc_assert(x49gp, EINT8_23, 1);
+                }
+            break;
+                }
 
-	case 1: /* Output */
+
+
+        }
+    }
+    break;
+    case 0:	/* Input */
+    case 1: /* Output */
 	case 3: /* Reserved */
-		goto out;
-	}
-
-#ifdef DEBUG_S3C2410_IO_PORT
-	printf("IO_PORT: GPGDAT %08x, change %08x\n", io->gpgdat, change);
-#endif
-
-	pending = -1;
-
-	switch ((io->extint1 >> (4 * n)) & 7) {
-	case 0:	/* Low Level */
-		if (!(io->gpgdat & (1 << n)))
-			pending = n;
-#ifdef DEBUG_S3C2410_IO_PORT
-		level = 1;
-#endif
-		break;
-	case 1:	/* High Level */
-		if (io->gpgdat & (1 << n))
-			pending = n;
-#ifdef DEBUG_S3C2410_IO_PORT
-		level = 1;
-#endif
-		break;
-	case 2:	/* Falling Edge */
-	case 3:
-		if ((change & (1 << n)) && !(io->gpgdat & (1 << n)))
-			pending = n;
-		break;
-	case 4:	/* Rising Edge */
-	case 5:
-		if ((change & (1 << n)) && (io->gpgdat & (1 << n)))
-			pending = n;
-		break;
-	case 6:	/* Any Edge */
-	case 7:
-		if (change & (1 << n))
-			pending = n;
 		break;
 	}
 
-#ifdef DEBUG_S3C2410_IO_PORT
-	printf("IO_PORT: IRQ: %d, (Level %u)\n", pending, level);
-#endif
-
-	if (-1 == pending)
-		goto out;
-
-	io->eintpend |= 1 << (n + 8);
-	if (io->eintpend & ~(io->eintmask))
-		s3c2410_intc_assert(x49gp, EINT8_23, 1);
-
-out:
-//	g_mutex_unlock(x49gp->memlock);
+    }
 
 	return;
 }

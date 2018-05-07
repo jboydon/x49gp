@@ -7,11 +7,11 @@ then
 fi
 
 B=${PWD##$HOME/}
-perl -pi -e "s!^(basename=).*!\1$B!" <config.tmpl >config
+perl -p -e "s!^(basename=).*!\1$B!" <config.tmpl >config
 
 if [ "$(uname -s)" = "Linux" ]
 then
-	perl -pi -e "s!^(filename=sdcard).dmg!\1!" config
+	perl -p -e "s!^(filename=sdcard).dmg!\1!" config
 fi
 
 echo "New config created"
