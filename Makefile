@@ -29,24 +29,16 @@ X49GP_DEBUG = \
 	-DDEBUG_X49GP_TIMER_IDLE \
 	-DDEBUG_X49GP_ARM_IDLE \
 	-DDEBUG_X49GP_ENABLE_IRQ \
+	-DDEBUG_X49GP_BLOCK \
+	-DDEBUG_X49GP_MAIN \
 	-DDEBUG_X49GP_UI
 
 DEBUG = -g # -pg
 
-#2.09
-#FIRMWARE = 4950_92.bin
-#HPGCC3 (copy HPGCC3 ROM first)
-#FIRMWARE = 49_hpgcc.bin
-#2.15
-#FIRMWARE = 4950_215.bin
-#2.15full
-FIRMWARE = 2MB_215f.bin
-
 BOOT49GP = boot-49g+.bin
 BOOT50G = boot-50g.bin
-SERIAL49GP = DE00000001
-SERIAL50G = DEA0000001
-COPYRIGHT = Kinposhcopyright
+IMAGE49GP = hp49g+.png
+IMAGE50G = hp50g.png
 
 QEMU_DEFINES = -DTARGET_ARM -DX49GP \
 	-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE \
@@ -90,6 +82,13 @@ X49GP_INCLUDES = -Iinclude -Ibitmaps $(QEMU_INC)
 
 INCLUDES = $(GDB_INCLUDES) $(X49GP_INCLUDES)
 
+INSTALL_PREFIX = /usr/local
+INSTALL_BINARY_DIR = "$(INSTALL_PREFIX)"/bin
+INSTALL_DATA_DIR = "$(INSTALL_PREFIX)"/share/$(TARGET)
+INSTALL_MENU_DIR = "$(INSTALL_PREFIX)"/share/applications
+INSTALL_MAN_DIR = "$(INSTALL_PREFIX)/share/man/man1"
+DEFINES += -DX49GP_DATADIR=\"$(INSTALL_DATA_DIR)\"
+
 ifdef QEMU_OLD
 CC = $(shell if [ "`uname -s`" = "Darwin" ]; then echo "gcc"; else echo "gcc-3.4"; fi)
 else
@@ -103,7 +102,7 @@ CC += $(shell if [ "`uname -m`" = "sparc64" -o "`uname -m`" = "sun4u" ]; then ec
 
 COCOA_LIBS=$(shell if [ "`uname -s`" = "Darwin" ]; then echo "-F/System/Library/Frameworks -framework Cocoa -framework IOKit"; fi)
 
-CFLAGS = -O2 -Wall -Werror $(DEBUG) $(INCLUDES) $(DEFINES) -Wno-error=deprecated-declarations
+CFLAGS = -O2 -Wall -Werror $(DEBUG) $(INCLUDES) $(DEFINES)
 LDFLAGS = $(DEBUG) $(X49GP_LDFLAGS) $(GDB_LDFLAGS)
 LDLIBS = $(X49GP_LIBS) $(GDB_LIBS) $(COCOA_LIBS)
 
@@ -158,12 +157,13 @@ VVFATOBJS += $(QEMU_DIR)/cutils.o
 endif
 
 TARGET = x49gp
+TARGET_ALLCAPS = X49GP
 
 all: do-it-all
 
 ifeq (.depend,$(wildcard .depend))
 include .depend
-do-it-all: $(QEMU) $(TARGET) flash-49g+ flash-50g sram s3c2410-sram
+do-it-all: $(QEMU) $(TARGET)
 else
 do-it-all: depend-and-build
 endif
@@ -176,59 +176,20 @@ $(TARGET): $(OBJS) $(VVFATOBJS) $(QEMU_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(VVFATOBJS) $(LDLIBS)
 endif
 
-flash-49g+: $(BOOT49GP) flash-noboot
-	@cp flash-noboot $@
-	@/bin/echo -n "$@: Copy boot loader \"$(BOOT49GP)\" to "; echo "0"
-	@dd if=$(BOOT49GP) of=$@ bs=16 seek=0 conv=notrunc 2>/dev/null
-	@/bin/echo -n "$@: Set serial number \"$(SERIAL49GP)\" at "; expr 16 \* 1023
-	@/bin/echo -n "$(SERIAL49GP)" >serialno
-	@dd if=serialno of=$@ bs=16 seek=1023 conv=notrunc 2>/dev/null
-	@rm -f serialno
+install: all $(TARGET).desktop $(TARGET).man
+	install -D -m 755 $(TARGET) "$(INSTALL_BINARY_DIR)/$(TARGET)"
+	install -D -m 644 $(BOOT49GP) "$(INSTALL_DATA_DIR)/$(BOOT49GP)"
+	install -D -m 644 $(BOOT50G) "$(INSTALL_DATA_DIR)/$(BOOT50G)"
+	install -D -m 644 $(IMAGE49GP) "$(INSTALL_DATA_DIR)/$(IMAGE49GP)"
+	install -D -m 644 $(IMAGE50G) "$(INSTALL_DATA_DIR)/$(IMAGE50G)"
+	install -D -m 644 $(TARGET).desktop "$(INSTALL_MENU_DIR)/$(TARGET).desktop"
+	install -D -m 644 $(TARGET).man "$(INSTALL_MAN_DIR)/$(TARGET).1"
 
-flash-50g: $(BOOT50G) flash-noboot
-	@cp flash-noboot $@
-	@/bin/echo -n "$@: Copy boot loader \"$(BOOT50G)\" to "; echo "0"
-	@dd if=$(BOOT50G) of=$@ bs=16 seek=0 conv=notrunc 2>/dev/null
-	@/bin/echo -n "$@: Set serial number \"$(SERIAL50G)\" at "; expr 16 \* 1023
-	@/bin/echo -n "$(SERIAL50G)" >serialno
-	@dd if=serialno of=$@ bs=16 seek=1023 conv=notrunc 2>/dev/null
-	@rm -f serialno
+$(TARGET).desktop: x49gp.desktop.in
+	perl -p -e "s!TARGET!$(TARGET)!" <x49gp.desktop.in >$@
 
-flash-noboot: $(FIRMWARE)
-	@/bin/echo -n "$@: Fill ff: 0 "
-	@/bin/echo -ne "\377" >one
-	@COUNT=0; \
-	SIZE=1; \
-	while [ $${COUNT} -le 20 ]; do \
-		cat one one >one2; \
-		mv one2 one; \
-		COUNT=`expr $${COUNT} + 1`; \
-		SIZE=`expr $${SIZE} + $${SIZE}`; \
-		/bin/echo -n "."; \
-	done; \
-	echo " $${SIZE}"
-	@mv one $@
-	@/bin/echo -n "$@: Mark blocks:"
-	@OFFSET=524544; \
-	for block in 02 03 04 05 06 07 10 11 12 13 14 15; do \
-		/bin/echo -ne "\360\0$${block}\000\000\000" >header; \
-		dd if=header of=$@ bs=1 seek=$${OFFSET} conv=notrunc 2>/dev/null; \
-		/bin/echo -n " $${OFFSET}"; \
-		OFFSET=`expr $${OFFSET} + 131072`; \
-	done; \
-	echo ""
-	@/bin/echo -n "$@: Copy firmware \"$(FIRMWARE)\" to "; expr 16 \* 1024
-	@dd if=$(FIRMWARE) of=$@ bs=16 seek=1024 conv=notrunc 2>/dev/null
-	@/bin/echo -n "$@: Set copyright \"$(COPYRIGHT)\" at "; expr 16 \* 1024
-	@/bin/echo -n "$(COPYRIGHT)" >copyright
-	@dd if=copyright of=$@ bs=16 seek=1024 conv=notrunc 2>/dev/null
-	@rm -f one one2 header copyright
-
-sram:
-	dd if=/dev/zero of=$@ bs=1024 count=512
-
-s3c2410-sram:
-	dd if=/dev/zero of=$@ bs=1024 count=4
+$(TARGET).man: x49gp.man.in
+	perl -p -e "s!TARGET_ALLCAPS!$(TARGET_ALLCAPS)!;" -e "s!TARGET!$(TARGET)!" <x49gp.man.in >$@
 
 sdcard:
 ifeq ($(shell uname),Darwin)
@@ -237,9 +198,6 @@ ifeq ($(shell uname),Darwin)
 else
 	/sbin/mkdosfs -v -C -S 512 -f 2 -F 16 -r 512 -R 2 -n "x49gp" $@ 65536
 endif
-
-config:
-	./newconfig
 
 sim: dummy
 	$(MAKE) -C $@
@@ -285,8 +243,7 @@ clean: clean-libs
 
 distclean: clean
 	rm -rf $(QEMU)
-	rm -f $(TARGET) flash-49g+ flash-50g flash-noboot sram s3c2410-sram
-	rm -f config
+	rm -f $(TARGET) $(TARGET).desktop $(TARGET).man $(TARGET).man
 
 depend-and-build: depend
 	$(MAKE) -C . all
@@ -311,8 +268,7 @@ clean: clean-qemu
 
 distclean: clean
 	$(MAKE) -C $(QEMU) -f Makefile-small distclean
-	rm -f $(TARGET) flash-49g+ flash-50g flash-noboot sram s3c2410-sram
-	rm -f config
+	rm -f $(TARGET) $(TARGET).desktop $(TARGET).man $(TARGET).man
 
 depend-libs: $(QEMU)/config-host.h
 

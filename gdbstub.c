@@ -455,8 +455,10 @@ static void gdb_read_byte(GDBState *s, int ch)
     int i, csum;
     char reply[1];
 
-//printf("%s: state %u, byte %02x (%c)\n", __FUNCTION__, s->state, ch, ch);
+#ifdef DEBUG_GDB
+printf("%s: state %u, byte %02x (%c)\n", __FUNCTION__, s->state, ch, ch);
 fflush(stdout);
+#endif
 
         switch(s->state) {
         case RS_IDLE:
@@ -515,8 +517,10 @@ gdb_handlesig (CPUState *env, int sig)
 
   s = &gdbserver_state;
 
-//printf("%s: sig: %u\n", __FUNCTION__, sig);
+#ifdef DEBUG_GDB
+printf("%s: sig: %u\n", __FUNCTION__, sig);
 fflush(stdout);
+#endif
 
   /* disable single step if it was enabled */
   cpu_single_step(env, 0);
@@ -537,8 +541,10 @@ fflush(stdout);
         {
           int i;
 
-//printf("%s: read: %d\n", __FUNCTION__, n);
+#ifdef DEBUG_GDB
+printf("%s: read: %d\n", __FUNCTION__, n);
 fflush(stdout);
+#endif
 
           for (i = 0; i < n; i++)
             gdb_read_byte (s, buf[i]);
@@ -547,6 +553,7 @@ fflush(stdout);
         {
           /* XXX: Connection closed.  Should probably wait for annother
              connection before continuing.  */
+          gdbserver_fd = -1;
           return sig;
         }
   }
@@ -573,8 +580,10 @@ gdb_poll (CPUState *env)
 		return 0;
 	}
 
-//printf("%s: revents: %08x\n", __FUNCTION__, pfd.revents);
+#ifdef DEBUG_GDB
+printf("%s: revents: %08x\n", __FUNCTION__, pfd.revents);
 fflush(stdout);
+#endif
 
 	if (pfd.revents & (POLLIN | POLLHUP))
 		return 1;
@@ -628,6 +637,10 @@ static void gdb_accept(void *opaque)
     gdb_syscall_state = s;
 
     fcntl(fd, F_SETFL, O_NONBLOCK);
+
+    /* When the debugger is connected, stop accepting connections */
+    /* to free the port up for other concurrent instances. */
+    close(gdbserver_fd);
 }
 
 static int gdbserver_open(int port)
@@ -663,10 +676,18 @@ static int gdbserver_open(int port)
 
 int gdbserver_start(int port)
 {
+    if (gdbserver_fd >= 0)
+        return -1;
+
     gdbserver_fd = gdbserver_open(port);
     if (gdbserver_fd < 0)
         return -1;
     /* accept connections */
     gdb_accept (NULL);
     return 0;
+}
+
+int gdbserver_isactive()
+{
+    return (gdbserver_fd >= 0);
 }

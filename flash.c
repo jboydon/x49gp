@@ -9,7 +9,12 @@
 #include <sys/mman.h>
 #include <errno.h>
 
+#include <gtk/gtk.h>
+#include <glib.h>
+#include <cairo.h>
+
 #include <x49gp.h>
+#include <x49gp_ui.h>
 #include <memory.h>
 #include <byteorder.h>
 
@@ -40,6 +45,7 @@ typedef struct {
 	uint32_t		cfi_size;
 	uint32_t		sector_size;
 	uint32_t		block_size;
+	char		*filename;
 	int			fd;
 	size_t			size;
 
@@ -53,6 +59,8 @@ typedef struct {
 #define SST29VF160_SECTOR_SIZE	0x00001000
 #define SST29VF160_BLOCK_SIZE	0x00010000
 #define SST29VF160_SIZE		0x00200000
+
+#define BOOT_SIZE		0x00004000
 
 static const unsigned short sst29vf160_cfi_data[] =
 {
@@ -460,48 +468,113 @@ static int
 flash_load(x49gp_module_t *module, GKeyFile *key)
 {
 	x49gp_flash_t *flash = module->user_data;
+	x49gp_t *x49gp = module->x49gp;
+	x49gp_ui_t *ui = x49gp->ui;
+	int calc = ui->calculator;
 	char *filename;
+	struct stat st;
+	char *bootfile;
+	int bootfd;
+	int error;
 
 #ifdef DEBUG_X49GP_MODULES
 	printf("%s: %s:%u\n", module->name, __FUNCTION__, __LINE__);
 #endif
 
-	filename = x49gp_module_get_filename(module, key, "filename");
-	if (NULL == filename) {
-		fprintf(stderr, "%s: %s:%u: key \"filename\" not found\n",
-			module->name, __FUNCTION__, __LINE__);
-		return -1;
-	}
+	error = x49gp_module_get_filename(module, key, "filename", "flash",
+					  &(flash->filename), &filename);
 
-	flash->fd = open(filename, O_RDWR);
+	flash->fd = open(filename, O_RDWR | O_CREAT, 0644);
 	if (flash->fd < 0) {
+		error = -errno;
 		fprintf(stderr, "%s: %s:%u: open %s: %s\n",
 			module->name, __FUNCTION__, __LINE__,
 			filename, strerror(errno));
 		g_free(filename);
-		return -1;
+		return error;
 	}
 
-	flash->data = mmap(phys_ram_base + flash->offset, SST29VF160_SIZE,
+	flash->size = SST29VF160_SIZE;
+	if (fstat(flash->fd, &st) < 0) {
+		error = -errno;
+		fprintf(stderr, "%s: %s:%u: fstat %s: %s\n",
+				module->name, __FUNCTION__, __LINE__,
+		  filename, strerror(errno));
+		g_free(filename);
+		close(flash->fd);
+		flash->fd = -1;
+		return error;
+	}
+
+	if (ftruncate(flash->fd, flash->size) < 0) {
+		error = -errno;
+		fprintf(stderr, "%s: %s:%u: ftruncate %s: %s\n",
+			module->name, __FUNCTION__, __LINE__,
+			filename, strerror(errno));
+		g_free(filename);
+		close(flash->fd);
+		flash->fd = -1;
+		return error;
+	}
+
+	flash->data = mmap(phys_ram_base + flash->offset, flash->size,
 			   PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED,
 			   flash->fd, 0);
 	if (flash->data == (void *) -1) {
+		error = -errno;
 		fprintf(stderr, "%s: %s:%u: mmap %s: %s\n",
 			module->name, __FUNCTION__, __LINE__,
 			filename, strerror(errno));
 		g_free(filename);
 		close(flash->fd);
 		flash->fd = -1;
-		return -1;
+		return error;
 	}
-	flash->size = SST29VF160_SIZE;
 
 	g_free(filename);
-	return 0;
+
+
+	if (flash->size > st.st_size) {
+		fprintf(stderr, "Flash too small, rebuilding\n");
+
+		memset(phys_ram_base + flash->offset + st.st_size,
+		       0xFF, flash->size - st.st_size);
+
+		bootfd = x49gp_module_open_rodata(module,
+						  calc == UI_CALCULATOR_HP49GP ?
+						  "boot-49g+.bin" :
+						  "boot-50g.bin",
+						  &bootfile);
+
+		if (bootfd < 0) {
+			g_free(filename);
+			close(flash->fd);
+			flash->fd = -1;
+			return bootfd;
+		}
+
+		if (read(bootfd, phys_ram_base + flash->offset,
+			 BOOT_SIZE) < 0) {
+			error = -errno;
+			fprintf(stderr, "%s: %s:%u: read %s: %s\n",
+				module->name, __FUNCTION__, __LINE__,
+				filename, strerror(errno));
+			g_free(bootfile);
+			close(bootfd);
+			close(flash->fd);
+			flash->fd = -1;
+			return error;
+		}
+
+		close(bootfd);
+		g_free(bootfile);
+	}
+
+	return error;
 }
 
 static int
-flash_save(x49gp_module_t *module, GKeyFile *config)
+flash_save(x49gp_module_t *module, GKeyFile *key)
 {
 	x49gp_flash_t *flash = module->user_data;
 	int error;
@@ -509,6 +582,8 @@ flash_save(x49gp_module_t *module, GKeyFile *config)
 #ifdef DEBUG_X49GP_MODULES
 	printf("%s: %s:%u\n", module->name, __FUNCTION__, __LINE__);
 #endif
+
+	x49gp_module_set_filename(module, key, "filename", flash->filename);
 
 	error = msync(flash->data, flash->size, MS_ASYNC);
 	if (error) {

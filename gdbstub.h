@@ -15,4 +15,6 @@ int gdb_handlesig (CPUState *, int);
 void gdb_exit(CPUState *, int);
 int gdbserver_start(int);
 
+int gdbserver_isactive();
+
 #endif

@@ -93,6 +93,9 @@ typedef struct {
 struct __x49gp_ui_s__ {
 	GtkWidget		*window;
 	GtkWidget		*fixed;
+	GtkWidget		*menu;
+	GtkWidget		*menu_unmount;
+	GtkWidget		*menu_debug;
 
 	GdkPixbuf		*bg_pixbuf;
 	GdkPixmap		*bg_pixmap;
@@ -105,6 +108,9 @@ struct __x49gp_ui_s__ {
 
 	x49gp_ui_button_t	*buttons;
 	unsigned int		nr_buttons;
+	unsigned int		buttons_down;
+
+	char			*name;
 
 	GtkWidget		*lcd_canvas;
 	GdkPixmap		*lcd_pixmap;

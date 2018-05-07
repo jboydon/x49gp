@@ -20,6 +20,8 @@
 
 #include <glib.h>
 
+#include "gdbstub.h"
+
 typedef struct {
 	long			type;
 } x49gp_clock_t;
@@ -278,6 +280,7 @@ printf("PC %08x: SRAM %08x: %08x %08x %08x <%08x>\n", x49gp->env->regs[15], 0x08
 
 			if (ret == EXCP_DEBUG) {
 				gdb_handlesig(x49gp->env, SIGTRAP);
+				continue;
 			}
 
 			if (x49gp->arm_idle != prev_idle) {

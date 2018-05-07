@@ -47,7 +47,7 @@
     file system (test if the boot sector still relies on that fact)! */
 /* MAYBE TODO: write block-visofs.c */
 
-#define DEBUG
+//#define DEBUG
 #undef DEBUG_SECTORS
 
 #ifdef DEBUG

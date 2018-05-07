@@ -25,14 +25,6 @@
 
 #include "gdbstub.h"
 
-static void *oom_check(void *ptr)
-{
-    if (ptr == NULL) {
-        abort();
-    }
-    return ptr;
-}
-
 static x49gp_t *x49gp;
 
 #ifdef QEMU_OLD // LD TEMPO HACK
@@ -50,6 +42,16 @@ ram_addr_t ram_size = 0x80000; // LD ???
 
 /* vl.c */
 int singlestep;
+
+#if !(defined(__APPLE__) || defined(_POSIX_C_SOURCE) && !defined(__sun__))
+static void *oom_check(void *ptr)
+{
+    if (ptr == NULL) {
+        abort();
+    }
+    return ptr;
+}
+#endif
 
 void *qemu_memalign(size_t alignment, size_t size)
 {
@@ -293,12 +295,252 @@ x49gp_lcd_timer(void *data)
 	x49gp_mod_timer(x49gp->lcd_timer, expires);
 }
 
+struct options {
+	char *config;
+	int debug_port;
+	int start_debugger;
+
+	int more_options;
+};
+
+struct option_def;
+
+typedef int (*option_action)(struct options *opt, struct option_def *match,
+			     char *this_opt, char *param, char *progname);
+
+struct option_def {
+	option_action action;
+	char *longname;
+	char shortname;
+};
+
+static int action_help(struct options *opt, struct option_def *match,
+		       char *this_opt, char *param, char *progname);
+static int action_debuglater(struct options *opt, struct option_def *match,
+							 char *this_opt, char *param, char *progname);
+static int action_debug(struct options *opt, struct option_def *match,
+			char *this_opt, char *param, char *progname);
+
+static int action_unknown_with_param(struct options *opt,
+				     struct option_def *match, char *this_opt,
+				     char *param, char *progname);
+static int action_longopt(struct options *opt, struct option_def *match,
+			  char *this_opt, char *param, char *progname);
+static int action_endopt(struct options *opt, struct option_def *match,
+			 char *this_opt, char *param, char *progname);
+
+struct option_def option_defs[] = {
+	{ action_help, "help", 'h' },
+	{ action_debuglater, "enable-debug", 'D' },
+	{ action_debug, "debug", 'd' },
+
+	{ action_longopt, NULL, '-' },
+	{ action_unknown_with_param, NULL, '=' },
+	{ action_endopt, "", '\0' }
+};
+
 static void
-usage(const char *progname)
+warn_unneeded_param(struct option_def *match, char *this_opt)
 {
-	fprintf(stderr, "usage: %s <config-file>\n",
-		progname);
-	exit(1);
+	if (this_opt[1] == '-') {
+		fprintf(stderr, "The option \"--%s\" does not support"
+			" parameters\n", match->longname);
+	} else
+		fprintf(stderr, "The option '-%c' does not support parameters\n",
+			match->shortname);
+}
+
+static int
+action_help(struct options *opt, struct option_def *match, char *this_opt,
+	    char *param, char *progname)
+{
+	if (param != NULL)
+		warn_unneeded_param(match, this_opt);
+
+	fprintf(stderr, "Emulator for HP 49G+ / 50G calculators\n"
+		"Usage: %s [<options>] [<config-file>]\n"
+		"Valid options:\n"
+		" -D, --enable-debug[=<port] enable the debugger interface\n"
+		"                            (default port: %u)\n"
+		" -d, --debug[=<port>]       like -D, but also start the"
+		" debugger immediately\n"
+		" -h, --help                 print this message and exit\n"
+		"The config file is formatted as INI file and contains the"
+		" settings for which\n"
+		"persistence makes sense, like calculator model, CPU"
+		" registers, etc.\n"
+		"If the config file is omitted, ~/.%s/config is used.\n"
+		"Please consult the manual for more details on config file"
+		" settings.\n", progname, DEFAULT_GDBSTUB_PORT, progname);
+	exit(0);
+}
+
+static int
+action_debuglater(struct options *opt, struct option_def *match, char *this_opt,
+				  char *param, char *progname)
+{
+	char *end;
+	int port;
+
+	if (param == NULL) {
+		if (opt->debug_port == 0)
+			opt->debug_port = DEFAULT_GDBSTUB_PORT;
+		return FALSE;
+	}
+
+	port = strtoul(param, &end, 0);
+	if ((end == param) || (*end != '\0')) {
+		fprintf(stderr, "Invalid port \"%s\", using default\n", param);
+		if (opt->debug_port == 0)
+			opt->debug_port = DEFAULT_GDBSTUB_PORT;
+		return TRUE;
+	}
+
+	if (opt->debug_port != 0 && opt->debug_port != DEFAULT_GDBSTUB_PORT)
+		fprintf(stderr, "Additional debug port \"%s\" specified,"
+			" overriding\n", param);
+	opt->debug_port = port;
+	return TRUE;
+}
+
+static int
+action_debug(struct options *opt, struct option_def *match, char *this_opt,
+			 char *param, char *progname)
+{
+	opt->start_debugger = TRUE;
+	return action_debuglater(opt, match, this_opt, param, progname);
+}
+
+static int
+action_longopt(struct options *opt, struct option_def *match, char *this_opt,
+	       char *param, char *progname)
+{
+	int i;
+	char *test_str, *option_str;
+
+	if (this_opt[1] != '-' || param != NULL) {
+		fprintf(stderr, "Unrecognized option '-', ignoring\n");
+		return FALSE;
+	}
+
+	for (i = 0; i < sizeof(option_defs) / sizeof(option_defs[0]); i++) {
+		if (option_defs[i].longname == NULL)
+			continue;
+
+		test_str = option_defs[i].longname;
+		option_str = this_opt + 2;
+
+		while (*test_str != '\0' && *test_str == *option_str) {
+			test_str++;
+			option_str++;
+		}
+
+		if (*test_str != '\0') continue;
+
+		switch (*option_str) {
+		case '\0':
+			(option_defs[i].action)(opt, option_defs + i, this_opt,
+						NULL, progname);
+			return TRUE;
+		case '=':
+			(option_defs[i].action)(opt, option_defs + i, this_opt,
+						option_str+2, progname);
+			return TRUE;
+		}
+	}
+
+	fprintf(stderr, "Unrecognized option \"%s\", ignoring\n", this_opt + 2);
+	return TRUE;
+}
+
+static int
+action_unknown_with_param(struct options *opt, struct option_def *match,
+			  char *this_opt, char *param, char *progname)
+{
+	return TRUE;
+}
+
+static int
+action_endopt(struct options *opt, struct option_def *match, char *this_opt,
+	      char *param, char *progname)
+{
+	opt->more_options = FALSE;
+	return TRUE;
+}
+
+static void
+parse_shortopt(struct options *opt, char *this_opt, char *progname)
+{
+	char *option = this_opt + 1;
+	char *param;
+	int i;
+
+	if (*option == '\0') {
+		fprintf(stderr,
+			"Empty option present, ignoring\n");
+		return;
+	}
+
+	do {
+		for (i = 0; i < sizeof(option_defs) / sizeof(option_defs[0]);
+		     i++) {
+
+			if (*option == option_defs[i].shortname) {
+				if (*(option + 1) == '=') {
+					param = option + 2;
+				} else {
+					param = NULL;
+				}
+
+				if ((option_defs[i].action)(opt, option_defs + i,
+							    this_opt, param,
+							    progname))
+					return;
+				break;
+			}
+		}
+
+
+		if (i == sizeof(option_defs) / sizeof(option_defs[0]))
+			fprintf(stderr,
+				"Unrecognized option '%c', ignoring\n",
+				*option);
+		option++;
+	} while (*option != '\0');
+}
+
+static void
+parse_options(struct options *opt, int argc, char **argv, char *progname)
+{
+	opt->more_options = TRUE;
+
+	while (argc > 1) {
+		switch (argv[1][0]) {
+			case '\0':
+				break;
+			break;
+
+			case '-':
+				if (opt->more_options) {
+					parse_shortopt(opt, argv[1], progname);
+					break;
+				}
+				/* FALL THROUGH */
+
+			default:
+				if (opt->config != NULL) {
+					fprintf(stderr,
+						"Additional config file \"%s\""
+						" specified, overriding\n",
+						argv[1]);
+				}
+				opt->config = argv[1];
+		}
+
+		argc--;
+		argv++;
+	}
+
 }
 
 void
@@ -321,22 +563,23 @@ ui_sighnd(int sig)
 int
 main(int argc, char **argv)
 {
-	char *progname;
+	char *progname, *progpath;
 	int error;
+	struct options opt;
+	const char *home;
 
 
-	progname = strrchr(argv[0], '/');
-	if (progname)
-		progname++;
-	else
-		progname = argv[0];
+	progname = g_path_get_basename(argv[0]);
+	progpath = g_path_get_dirname(argv[0]);
 
 
 	gtk_init(&argc, &argv);
 
 
-	if (argc < 2)
-		usage(progname);
+	opt.config = NULL;
+	opt.debug_port = 0;
+	opt.start_debugger = FALSE;
+	parse_options(&opt, argc, argv, progname);
 
 	x49gp = malloc(sizeof(x49gp_t));
 	if (NULL == x49gp) {
@@ -346,14 +589,17 @@ main(int argc, char **argv)
 	}
 	memset(x49gp, 0, sizeof(x49gp_t));
 
-fprintf(stderr, "_SC_PAGE_SIZE: %08lx\n", sysconf(_SC_PAGE_SIZE));
+#ifdef DEBUG_X49GP_MAIN
+	fprintf(stderr, "_SC_PAGE_SIZE: %08lx\n", sysconf(_SC_PAGE_SIZE));
 
-printf("%s:%u: x49gp: %p\n", __FUNCTION__, __LINE__, x49gp);
+	printf("%s:%u: x49gp: %p\n", __FUNCTION__, __LINE__, x49gp);
+#endif
 
 	INIT_LIST_HEAD(&x49gp->modules);
 
 
 	x49gp->progname = progname;
+	x49gp->progpath = progpath;
 	x49gp->clk_tck = sysconf(_SC_CLK_TCK);
 
 	x49gp->emulator_fclk = 75000000;
@@ -391,7 +637,19 @@ printf("%s:%u: x49gp: %p\n", __FUNCTION__, __LINE__, x49gp);
 		exit(1);
 	}
 
-    error = x49gp_modules_load(x49gp, argv[argc-1]);
+	if (opt.config == NULL) {
+		char config_dir[strlen(progname) + 2];
+
+		home = g_get_home_dir();
+		sprintf(config_dir, ".%s", progname);
+		opt.config = g_build_filename(home, config_dir,
+					      "config", NULL);
+	}
+
+	x49gp->basename = g_path_get_dirname(opt.config);
+	x49gp->debug_port = opt.debug_port;
+
+	error = x49gp_modules_load(x49gp, opt.config);
 	if (error) {
 		if (error != -EAGAIN) {
 			exit(1);
@@ -416,17 +674,15 @@ printf("%s:%u: x49gp: %p\n", __FUNCTION__, __LINE__, x49gp);
 	x49gp_mod_timer(x49gp->lcd_timer, x49gp_get_clock());
 
 
-    if(argc>=3) {
-        if((argv[1][0]=='-')&&(argv[1][1]=='d')&&(argv[1][2]==0)) {
-    gdbserver_start(1234);
-    gdb_handlesig(x49gp->env, 0);
-        }
-    }
+	if(opt.debug_port != 0 && opt.start_debugger) {
+		gdbserver_start(opt.debug_port);
+		gdb_handlesig(x49gp->env, 0);
+	}
 
 	x49gp_main_loop(x49gp);
 
 
-    x49gp_modules_save(x49gp, argv[argc-1]);
+	x49gp_modules_save(x49gp, opt.config);
 	x49gp_modules_exit(x49gp);
 
 

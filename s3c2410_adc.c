@@ -223,7 +223,9 @@ s3c2410_adc_init(x49gp_module_t *module)
 	iotype = cpu_register_io_memory(s3c2410_adc_readfn,
 					s3c2410_adc_writefn, adc);
 #endif
-printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#ifdef DEBUG_S3C2410_ADC
+	printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#endif
 	cpu_register_physical_memory(S3C2410_ADC_BASE, S3C2410_MAP_SIZE, iotype);
 
 	return 0;

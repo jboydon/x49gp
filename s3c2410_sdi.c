@@ -39,6 +39,7 @@ typedef struct {
 
 	x49gp_t			*x49gp;
 
+	char			*filename;
 	BlockDriverState	*bs;
 	int			fd;
 
@@ -525,15 +526,89 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 	}
 }
 
+void
+s3c2410_sdi_unmount(x49gp_t *x49gp)
+{
+	s3c2410_sdi_t *sdi = x49gp->s3c2410_sdi;
+
+	if (sdi->bs) {
+		bdrv_delete(sdi->bs);
+		sdi->bs = NULL;
+	}
+
+	if (sdi->fd >= 0) {
+		close(sdi->fd);
+		sdi->fd = -1;
+	}
+
+	g_free(sdi->filename);
+	sdi->filename = g_strdup("");
+
+	s3c2410_io_port_f_set_bit(x49gp, 3, 0);
+}
+
+int
+s3c2410_sdi_mount(x49gp_t *x49gp, char *filename)
+{
+	s3c2410_sdi_t *sdi = x49gp->s3c2410_sdi;
+	struct stat st;
+	char vvfat_name[1024];
+	int error = 0;
+
+	s3c2410_sdi_unmount(x49gp);
+	g_free(sdi->filename);
+	sdi->filename = filename;
+
+	if (strcmp(filename, "") && (stat(filename, &st) == 0)) {
+		if (S_ISDIR(st.st_mode)) {
+			sprintf(vvfat_name, "fat:rw:16:%s", filename);
+			sdi->bs = bdrv_new("");
+			if (sdi->bs) {
+				error = bdrv_open(sdi->bs, vvfat_name, 0);
+				if (error != 0) {
+					fprintf(stderr,
+						"%s:%u: bdrv_open %s: %d\n",
+						__FUNCTION__, __LINE__,
+						vvfat_name, error);
+					bdrv_delete(sdi->bs);
+					sdi->bs = NULL;
+				}
+			}
+		} else {
+			sdi->fd = open(filename, O_RDWR);
+			if (sdi->fd < 0) {
+				fprintf(stderr, "%s:%u: open %s: %s\n",
+					__FUNCTION__, __LINE__, filename,
+					strerror(errno));
+			}
+		}
+	}
+
+	if ((sdi->bs != NULL) || (sdi->fd >= 0)) {
+		s3c2410_io_port_f_set_bit(x49gp, 3, 1);
+	} else {
+		s3c2410_io_port_f_set_bit(x49gp, 3, 0);
+	}
+
+	return error;
+}
+
+int
+s3c2410_sdi_is_mounted(x49gp_t *x49gp)
+{
+	s3c2410_sdi_t *sdi = x49gp->s3c2410_sdi;
+
+	return (sdi->bs != NULL) || (sdi->fd >= 0);
+}
+
 static int
 s3c2410_sdi_load(x49gp_module_t *module, GKeyFile *key)
 {
+	x49gp_t *x49gp = module->x49gp;
 	s3c2410_sdi_t *sdi = module->user_data;
 	s3c2410_offset_t *reg;
-	char *filename;
-	char vvfat_name[1024];
-	struct stat st;
-	int error = 0;
+	char *filename, *filepath;
+	int error, error2;
 	int i;
 
 #ifdef DEBUG_X49GP_MODULES
@@ -542,32 +617,18 @@ s3c2410_sdi_load(x49gp_module_t *module, GKeyFile *key)
 
 	sdi->fd = -1;
 	sdi->bs = NULL;
+	sdi->filename = NULL;
 
-	filename = x49gp_module_get_filename(module, key, "filename");
-	if (filename && (stat(filename, &st) == 0)) {
-		if (S_ISDIR(st.st_mode)) {
-			sprintf(vvfat_name, "fat:rw:16:%s", filename);
-			sdi->bs = bdrv_new("");
-			if (sdi->bs) {
-				error = bdrv_open(sdi->bs, vvfat_name, 0);
-				fprintf(stderr, "%s:%u: bdrv_open(%s): %d\n",
-					__FUNCTION__, __LINE__, vvfat_name, error);
-				if (error != 0) {
-					bdrv_delete(sdi->bs);
-					sdi->bs = NULL;
-				}
-			}
-		} else {
-			sdi->fd = open(filename, O_RDWR);
-		}
-		g_free(filename);
-	}
-
-	if ((sdi->bs != NULL) || (sdi->fd >= 0)) {
-		s3c2410_io_port_f_set_bit(sdi->x49gp, 3, 1);
+	error = x49gp_module_get_filename(module, key, "filename", "",
+					  &filename, &filepath);
+	if (strcmp(filename, "")) {
+		error2 = s3c2410_sdi_mount(x49gp, filepath);
+		if (0 == error) error = error2;
 	} else {
-		s3c2410_io_port_f_set_bit(sdi->x49gp, 3, 0);
+		s3c2410_sdi_unmount(x49gp);
 	}
+	g_free(sdi->filename);
+	sdi->filename = filename;
 
 	for (i = 0; i < sdi->nr_regs; i++) {
 		reg = &sdi->regs[i];
@@ -593,6 +654,8 @@ s3c2410_sdi_save(x49gp_module_t *module, GKeyFile *key)
 #ifdef DEBUG_X49GP_MODULES
 	printf("%s: %s:%u\n", module->name, __FUNCTION__, __LINE__);
 #endif
+
+	x49gp_module_set_filename(module, key, "filename", sdi->filename);
 
 	for (i = 0; i < sdi->nr_regs; i++) {
 		reg = &sdi->regs[i];
@@ -665,6 +728,7 @@ s3c2410_sdi_init(x49gp_module_t *module)
 	}
 
 	module->user_data = sdi;
+	module->x49gp->s3c2410_sdi = sdi;
 	sdi->x49gp = module->x49gp;
 
 #ifdef QEMU_OLD
@@ -674,7 +738,9 @@ s3c2410_sdi_init(x49gp_module_t *module)
 	iotype = cpu_register_io_memory(s3c2410_sdi_readfn,
 					s3c2410_sdi_writefn, sdi);
 #endif
-printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#ifdef DEBUG_S3C2410_SDI
+	printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#endif
 	cpu_register_physical_memory(S3C2410_SDI_BASE, S3C2410_MAP_SIZE, iotype);
 
 	bdrv_init();

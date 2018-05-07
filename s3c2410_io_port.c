@@ -248,8 +248,7 @@ s3c2410_io_port_read(void *opaque, target_phys_addr_t offset)
 		break;
 
 	case S3C2410_IO_PORT_GPGDAT:
-		*(reg->datap) = s3c2410_scan_keys(io->x49gp, io->gpgcon, *(reg->datap));
-		break;
+		return s3c2410_scan_keys(io->x49gp, io->gpgcon, io->gpgdat);
 
 	case S3C2410_IO_PORT_GPHDAT:
 		if (0 == ((io->gphcon >> 14) & 3)) {
@@ -356,16 +355,25 @@ static uint32_t lcd_data = 0;
 }
 
 void
-s3c2410_io_port_g_update(x49gp_t *x49gp)
+s3c2410_io_port_g_update(x49gp_t *x49gp, int column, int row, unsigned char columnbit, unsigned char rowbit, uint32_t new_state)
 {
 	s3c2410_io_port_t *io = x49gp->s3c2410_io_port;
-    uint32_t oldvalue, change;
+    uint32_t oldvalue, newvalue, change;
     int n;
 
-    oldvalue=io->gpgdat;
-	io->gpgdat = s3c2410_scan_keys(x49gp, io->gpgcon, io->gpgdat);
+    oldvalue = s3c2410_scan_keys(x49gp, io->gpgcon, io->gpgdat);
 
-    change=io->gpgdat^oldvalue;
+	if (new_state) {
+		x49gp->keybycol[column] |= rowbit;
+		x49gp->keybyrow[row] |= columnbit;
+
+	} else {
+		x49gp->keybycol[column] &= ~rowbit;
+		x49gp->keybyrow[row] &= ~columnbit;
+	}
+
+	newvalue = s3c2410_scan_keys(x49gp, io->gpgcon, io->gpgdat);
+    change=newvalue^oldvalue;
 
 
     for(n=0;n<15;++n) {
@@ -374,11 +382,12 @@ s3c2410_io_port_g_update(x49gp_t *x49gp)
 
 	case 2: /* Interrupt */
     {
-        if(n+8<=15) {
-            // EINT 8-15
-        switch ((io->extint1 >> (4 * n)) & 7) {
+        switch (n+8<=15 ?
+            (io->extint1 >> (4 * n)) & 7 : // EINT 8-15
+            (io->extint2 >> (4 * (n-8))) & 7 // EINT 16-23
+            ) {
         case 0:	/* Low Level */
-            if (!(io->gpgdat & (1 << n)))
+            if (!(newvalue & (1 << n)))
             {
                 io->eintpend |= 1 << (n + 8);
                 if (io->eintpend & ~(io->eintmask))
@@ -386,7 +395,7 @@ s3c2410_io_port_g_update(x49gp_t *x49gp)
             }
             break;
         case 1:	/* High Level */
-            if (io->gpgdat & (1 << n)) {
+            if (newvalue & (1 << n)) {
                     io->eintpend |= 1 << (n + 8);
                     if (io->eintpend & ~(io->eintmask))
                         s3c2410_intc_assert(x49gp, EINT8_23, 1);
@@ -394,7 +403,7 @@ s3c2410_io_port_g_update(x49gp_t *x49gp)
             break;
         case 2:	/* Falling Edge */
         case 3:
-            if ((change & (1 << n)) && !(io->gpgdat & (1 << n))) {
+            if ((change & (1 << n)) && !(newvalue & (1 << n))) {
                 io->eintpend |= 1 << (n + 8);
                 if (io->eintpend & ~(io->eintmask))
                     s3c2410_intc_assert(x49gp, EINT8_23, 1);
@@ -402,7 +411,7 @@ s3c2410_io_port_g_update(x49gp_t *x49gp)
             break;
         case 4:	/* Rising Edge */
         case 5:
-            if ((change & (1 << n)) && (io->gpgdat & (1 << n))) {
+            if ((change & (1 << n)) && (newvalue & (1 << n))) {
                 io->eintpend |= 1 << (n + 8);
                 if (io->eintpend & ~(io->eintmask))
                     s3c2410_intc_assert(x49gp, EINT8_23, 1);
@@ -416,53 +425,6 @@ s3c2410_io_port_g_update(x49gp_t *x49gp)
                     s3c2410_intc_assert(x49gp, EINT8_23, 1);
             }
 		break;
-            }
-        }
-        else {
-            // EINT 16-23
-            switch ((io->extint2 >> (4 * (n-8))) & 7) {
-            case 0:	/* Low Level */
-                if (!(io->gpgdat & (1 << n)))
-                {
-                    io->eintpend |= 1 << (n + 8);
-                    if (io->eintpend & ~(io->eintmask))
-                        s3c2410_intc_assert(x49gp, EINT8_23, 1);
-                }
-                break;
-            case 1:	/* High Level */
-                if (io->gpgdat & (1 << n)) {
-                        io->eintpend |= 1 << (n + 8);
-                        if (io->eintpend & ~(io->eintmask))
-                            s3c2410_intc_assert(x49gp, EINT8_23, 1);
-                    }
-                break;
-            case 2:	/* Falling Edge */
-            case 3:
-                if ((change & (1 << n)) && !(io->gpgdat & (1 << n))) {
-                    io->eintpend |= 1 << (n + 8);
-                    if (io->eintpend & ~(io->eintmask))
-                        s3c2410_intc_assert(x49gp, EINT8_23, 1);
-                }
-                break;
-            case 4:	/* Rising Edge */
-            case 5:
-                if ((change & (1 << n)) && (io->gpgdat & (1 << n))) {
-                    io->eintpend |= 1 << (n + 8);
-                    if (io->eintpend & ~(io->eintmask))
-                        s3c2410_intc_assert(x49gp, EINT8_23, 1);
-                }
-                break;
-            case 6:	/* Any Edge */
-            case 7:
-                if (change & (1 << n)) {
-                    io->eintpend |= 1 << (n + 8);
-                    if (io->eintpend & ~(io->eintmask))
-                        s3c2410_intc_assert(x49gp, EINT8_23, 1);
-                }
-            break;
-                }
-
-
 
         }
     }
@@ -701,7 +663,9 @@ s3c2410_io_port_init(x49gp_module_t *module)
 	iotype = cpu_register_io_memory(s3c2410_io_port_readfn,
 					s3c2410_io_port_writefn, io);
 #endif
-printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#ifdef DEBUG_S3C2410_IO_PORT
+	printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#endif
 	cpu_register_physical_memory(S3C2410_IO_PORT_BASE, S3C2410_MAP_SIZE, iotype);
 	return 0;
 }

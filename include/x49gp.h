@@ -67,6 +67,7 @@ struct __x49gp_s__ {
 	void			*s3c2410_watchdog;
 	void			*s3c2410_intc;
 	void			*s3c2410_io_port;
+	void			*s3c2410_sdi;
 
 	void			*timer;
 	uint8_t			*sram;
@@ -95,6 +96,9 @@ struct __x49gp_s__ {
 
 	GKeyFile		*config;
 	const char		*progname;
+	const char		*progpath;
+	const char		*basename;
+	int				debug_port;
 };
 
 extern void	x49gp_set_idle(x49gp_t *, x49gp_arm_idle_t idle);
@@ -110,8 +114,11 @@ extern int	x49gp_module_init(x49gp_t *x49gp, const char *name,
 extern int	x49gp_module_register(x49gp_module_t *module);
 extern int	x49gp_module_unregister(x49gp_module_t *module);
 
-extern char	*x49gp_module_get_filename(x49gp_module_t *module, GKeyFile *,
-					   const char *key);
+extern int	x49gp_module_get_filename(x49gp_module_t *module, GKeyFile *,
+					  const char *, char *, char **,
+					  char **);
+extern int	x49gp_module_set_filename(x49gp_module_t *module, GKeyFile *,
+					  const char *, const char *);
 extern int	x49gp_module_get_int(x49gp_module_t *module, GKeyFile *,
 				     const char *, int, int *);
 extern int	x49gp_module_set_int(x49gp_module_t *module, GKeyFile *,
@@ -131,6 +138,15 @@ extern int	x49gp_module_set_u64(x49gp_module_t *module, GKeyFile *,
 				     const char *, uint64_t);
 extern int	x49gp_module_get_string(x49gp_module_t *module, GKeyFile *,
 					const char *, char *, char **);
+extern int	x49gp_module_set_string(x49gp_module_t *module, GKeyFile *,
+					const char *, const char *);
+extern int	x49gp_module_open_rodata(x49gp_module_t *module,
+					 const char *name,
+					 char **path);
+
+extern void	s3c2410_sdi_unmount(x49gp_t *x49gp);
+extern int	s3c2410_sdi_mount(x49gp_t *x49gp, char *filename);
+extern int	s3c2410_sdi_is_mounted(x49gp_t *x49gp);
 
 extern int	x49gp_modules_init(x49gp_t *);
 extern int	x49gp_modules_exit(x49gp_t *);

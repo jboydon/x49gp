@@ -110,7 +110,7 @@ x49gp_get_pixel_color(s3c2410_lcd_t *lcd, int x, int y)
 		case 1:
 			return 15 * data;
 		case 2:
-			return 15 & (lcd->bluelut >> (2 * data));
+			return 15 & (lcd->bluelut >> (4 * data));
 		default:
 			return data;
 	}
@@ -375,7 +375,9 @@ s3c2410_lcd_init(x49gp_module_t *module)
 	iotype = cpu_register_io_memory(s3c2410_lcd_readfn,
 					s3c2410_lcd_writefn, lcd);
 #endif
-printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#ifdef DEBUG_S3C2410_LCD
+	printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#endif
 	cpu_register_physical_memory(S3C2410_LCD_BASE, S3C2410_MAP_SIZE, iotype);
 	return 0;
 }

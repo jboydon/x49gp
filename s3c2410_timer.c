@@ -522,7 +522,9 @@ s3c2410_timer_init(x49gp_module_t *module)
 	iotype = cpu_register_io_memory(s3c2410_timer_readfn,
 					s3c2410_timer_writefn, timer);
 #endif
-printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#ifdef DEBUG_S3C2410_TIMER
+	printf("%s: iotype %08x\n", __FUNCTION__, iotype);
+#endif
 	cpu_register_physical_memory(S3C2410_TIMER_BASE, S3C2410_MAP_SIZE, iotype);
 	return 0;
 }

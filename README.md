@@ -29,6 +29,12 @@ Prereqs:
   sudo yum install git gtk2-devel
 ```
 
+* Arch:
+
+```
+  sudo pacman -S git gtk2
+```
+
 ------------------------------------------------------------------------
 
 Start up X11 and use xterm
@@ -43,71 +49,19 @@ git clone https://github.com/chwdt/x49gp.git
 
 ------------------------------------------------------------------------
 
-Edit FIRMWARE (optional):
-
-The default firmware will be 4950_92.bin, for HPGCC3 development copy
-49_hpgcc.bin in to x49gp and change FIRMWARE in the Makefile.
-
-------------------------------------------------------------------------
-
 Build:
 
 ```
 cd x49gp
 make
-make sdcard
-make config
 ```
 
 ------------------------------------------------------------------------
 
-Mount SD card:
-
-OS/X:
+Install (optional):
 
 ```
-open sdcard.dmg
-```
-
-Linux:
-
-```
-sudo mkdir -p /Volumes/X49GP/
-sudo mount -o loop sdcard /Volumes/X49GP
-```
-
-------------------------------------------------------------------------
-
-Put stuff in SD, e.g.:
-
-OS/X:
-
-```
-cp BACKUP /Volumes/X49GP/
-```
-
-Linux:
-
-```
-sudo cp BACKUP /Volumes/X49GP/
-```
-
-NOTE:  If using HPGCC2 don't forget the ARMToolbox.
-
-------------------------------------------------------------------------
-
-Eject SD:
-
-OS/X:
-
-```
-hdiutil detach $(df | grep -i x49gp | head -1 | awk '{print $1}')
-```
-
-Linux:
-
-```
-sudo umount /Volumes/X49GP
+make install
 ```
 
 ------------------------------------------------------------------------
@@ -115,8 +69,45 @@ sudo umount /Volumes/X49GP
 Run:
 
 ```
-./x49gp config
+./x49gp
 ```
+
+When installed, there should be an applications menu entry to run x49gp.
+Installing also enables running it from the terminal in any directory:
+
+```
+x49gp
+```
+
+------------------------------------------------------------------------
+
+First launch setup
+
+On the first launch, the calculator will be missing a firmware, forcing
+the bootloader to complain and demand a fresh one.
+HP's official firmwares can be found at e.g.:
+https://www.hpcalc.org/hp49/pc/rom/
+Some of the most popular of these are also included in x49gp's source
+directory.
+Alternatively, the most up-to-date version of NewRPL can be found at:
+https://hpgcc3.org/downloads/newrplfw.bin
+
+Pick a firmware to use and store it in any directory along with its
+update.scp file. The update.scp file only contains the filename of the
+firmware (when renaming the firmware, make sure the new name fits into
+a DOS-style 8.3 naming scheme) followed by a DOS-style linebreak, so a
+missing update.scp can be rectified easily.
+
+Right click on the screen, or press the menu key on a physical keyboard,
+to open the menu, and click on "Mount SD folder".
+Select the directory containing the firmware. Then, select the SD option
+from the bootloader's update source menu by clicking on the virtual key
+labeled "2" or by pressing the "2" key on a physical keyboard.
+
+Now the bootloader is installing the firmware; wait until it finishes
+printing hex numbers to the virtual display, then follow its prompt to
+press Reset ( = F12 or the Reset entry in the menu) or Enter.
+The calculator should be fully usable after this procedure.
 
 ------------------------------------------------------------------------
 
@@ -147,7 +138,14 @@ EVAL
 
 To Exit Emulator
 
-* ctrl-c to exit (from launch window)
+Use any of:
+
+* Press Alt-F4 or your system's equivalent key combination
+
+* Open the menu using a right click on the screen or the menu key, then
+choose "Quit"
+
+* Press Ctrl-C  in the launch terminal
 
 ------------------------------------------------------------------------
 
@@ -156,15 +154,26 @@ Start Over:
 * clean slate?
 
 ```
-rm -f flash-49g+ flash-50g flash-noboot sram s3c2410-sram
-make flash-49g+ flash-50g flash-noboot sram s3c2410-sram
-./newconfig
+rm -r ~/.x49gp
 ```
 
 * soft reset only?
 
+With x49gp running, press F12, or right click on the screen and select
+"Reset" from the menu.
+
+------------------------------------------------------------------------
+
+Debugging with x49gp
+
+There is a GDB interface for debugging ARM programs, e.g. HPGCC2/3
+applications or replacement firmwares. To use it, start x49gp from a
+terminal with the -d option, and start arm-none-eabi-gdb with an
+appropriate ELF file in another terminal. To connect to x49gp, type in
+the GDB console:
+
 ```
-./newconfig
+target remote :1234
 ```
 
 ------------------------------------------------------------------------
@@ -177,12 +186,3 @@ Known Limitations:
   - `f*` calls stable (HPGCC3)
 
 ------------------------------------------------------------------------
-
-Change Log:
-
-Additional note: August 22, 2013
-
-Updated this so that it'll compile on Ubuntu 12.04.
-
---Nicholas Kirchner
-
