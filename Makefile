@@ -82,14 +82,14 @@ CC += $(shell if [ "`uname -m`" = "sparc64" -o "`uname -m`" = "sun4u" ]; then ec
 
 COCOA_LIBS=$(shell if [ "`uname -s`" = "Darwin" ]; then echo "-F/System/Library/Frameworks -framework Cocoa -framework IOKit"; fi)
 
-CFLAGS = -O2 -Wall -Werror -D_FORTIFY_SOURCE=1 $(DEBUG) $(INCLUDES) $(DEFINES)
-LDFLAGS = $(DEBUG) $(X49GP_LDFLAGS) $(GDB_LDFLAGS)
-LDLIBS = $(X49GP_LIBS) $(GDB_LIBS) $(COCOA_LIBS)
+X49GP_CFLAGS = -O2 -Wall -Werror -D_FORTIFY_SOURCE=1 $(DEBUG) $(INCLUDES) $(DEFINES)
+X49GP_LDFLAGS += $(DEBUG) $(GDB_LDFLAGS)
+X49GP_LDLIBS = $(X49GP_LIBS) $(GDB_LIBS) $(COCOA_LIBS)
 
 MAKEDEPEND = $(CC) -MM
 
-CFLAGS += $(shell pkg-config --cflags gtk+-2.0)
-LDLIBS += $(shell pkg-config --libs gtk+-2.0) -lz -lm
+X49GP_CFLAGS += $(shell pkg-config --cflags gtk+-2.0)
+X49GP_LDLIBS += $(shell pkg-config --libs gtk+-2.0) -lz -lm
 
 LIBS = $(QEMU)
 
@@ -135,7 +135,7 @@ do-it-all: depend-and-build
 endif
 
 $(TARGET): $(OBJS) $(VVFATOBJS) $(QEMU_OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(VVFATOBJS) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(X49GP_LDFLAGS) -o $@ $(OBJS) $(VVFATOBJS) $(LDLIBS) $(X49GP_LDLIBS)
 
 install: all $(TARGET).desktop $(TARGET).man
 	install -D -m 755 $(TARGET) "$(INSTALL_BINARY_DIR)/$(TARGET)"
@@ -174,10 +174,10 @@ _dir_qemu: dummy
 	+$(QEMUMAKE) -C $(QEMU) -f Makefile-small
 
 %.o: %.c
-	$(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) $(X49GP_CFLAGS) -o $@ -c $<
 
 block-vvfat.o: block-vvfat.c
-	$(CC) $(CFLAGS) -fno-aggressive-loop-optimizations -o $@ -c $<
+	$(CC) $(CFLAGS) $(X49GP_CFLAGS) -fno-aggressive-loop-optimizations -o $@ -c $<
 
 clean-qemu:
 	$(MAKE) -C $(QEMU) -f Makefile-small clean
@@ -195,6 +195,6 @@ depend-and-build: depend
 	$(MAKE) -C . all
 
 depend: depend-libs
-	$(MAKEDEPEND) $(CFLAGS) $(SRCS) >.depend
+	$(MAKEDEPEND) $(CFLAGS) $(X49GP_CFLAGS) $(SRCS) >.depend
 
 dummy:
