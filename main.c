@@ -96,13 +96,6 @@ void armv7m_nvic_complete_irq(void *opaque, int irq)
   abort();
 }
 
-void gdb_register_coprocessor(CPUState * env,
-                             void * get_reg, void * set_reg,
-                             int num_regs, const char *xml, int g_pos)
-{
-  fprintf(stderr, "TODO: %s\n", __FUNCTION__);
-}
-
 void *
 qemu_malloc(size_t size)
 {
