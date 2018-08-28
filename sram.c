@@ -387,9 +387,6 @@ sram_get_word(void *opaque, target_phys_addr_t offset)
 	x49gp_sram_t *sram = opaque;
 	uint32_t data;
 
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t)phys_ram_base + sram->offset;
-#endif
 	data = ldl_p(sram->data + offset);
 
 #if 0
@@ -423,9 +420,6 @@ sram_get_halfword(void *opaque, target_phys_addr_t offset)
 	x49gp_sram_t *sram = opaque;
 	unsigned short data;
 
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t)phys_ram_base + sram->offset;
-#endif
 	data = lduw_p(sram->data + offset);
 
 #ifdef DEBUG_X49GP_SYSRAM_READ
@@ -453,9 +447,6 @@ sram_get_byte(void *opaque, target_phys_addr_t offset)
 	x49gp_sram_t *sram = opaque;
 	unsigned char data;
 
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t)phys_ram_base + sram->offset;
-#endif
 	data = ldub_p(sram->data + offset);
 
 #ifdef DEBUG_X49GP_SYSRAM_READ
@@ -481,10 +472,6 @@ static void
 sram_put_word(void *opaque, target_phys_addr_t offset, uint32_t data)
 {
 	x49gp_sram_t *sram = opaque;
-
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t)phys_ram_base + sram->offset;
-#endif
 
 	if (offset == 0x00000a1c) {
 		printf("write SRAM 4 at offset %08x: %08x (pc %08x)\n",
@@ -532,9 +519,6 @@ sram_put_halfword(void *opaque, target_phys_addr_t offset, uint32_t data)
 {
 	x49gp_sram_t *sram = opaque;
 
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t)phys_ram_base + sram->offset;
-#endif
 	data &= 0xffff;
 
 #ifdef DEBUG_X49GP_SYSRAM_WRITE
@@ -561,9 +545,6 @@ sram_put_byte(void *opaque, target_phys_addr_t offset, uint32_t data)
 {
 	x49gp_sram_t *sram = opaque;
 
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t)phys_ram_base + sram->offset;
-#endif
 	data &= 0xff;
 
 #ifdef DEBUG_X49GP_SYSRAM_WRITE

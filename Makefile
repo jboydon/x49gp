@@ -49,32 +49,16 @@ QEMU_DEFINES = -DTARGET_ARM -DX49GP \
 # Use this for speed
 DEFINES = $(QEMU_DEFINES)
 
-ifdef QEMU_OLD
-QEMUSRC = qemu/prepare.sh \
-	$(wildcard qemu/patches/*.patch) \
-	$(wildcard qemu/patches/*.diff)
-
-QEMU=qemu/qemu
-else
-QEMUSRC =
 QEMU=qemu/qemu-git
-endif
 
 QEMUMAKE = $(shell if [ "`uname -s`" = "Linux" -a "`uname -m`" = "sun4u" ]; then echo "sparc32 $(MAKE)"; else echo "$(MAKE)"; fi)
 
-ifdef QEMU_OLD
-QEMU_DIR=$(QEMU)
-QEMU_DEFINES+=-DQEMU_OLD
-X49GP_LDFLAGS = -L$(QEMU)/arm-softmmu
-X49GP_LIBS = -lqemu -lz
-else
 QEMU_DIR=$(QEMU)
 QEMU_DIR_BUILD=$(QEMU_DIR)/arm-softmmu
 QEMU_DEFINES+=-DNEED_CPU_H
 QEMU_OBJS = $(QEMU_DIR_BUILD)/exec.o $(QEMU_DIR_BUILD)/translate-all.o $(QEMU_DIR_BUILD)/cpu-exec.o $(QEMU_DIR_BUILD)/translate.o $(QEMU_DIR_BUILD)/fpu/softfloat.o $(QEMU_DIR_BUILD)/op_helper.o $(QEMU_DIR_BUILD)/helper.o $(QEMU_DIR_BUILD)/disas.o $(QEMU_DIR_BUILD)/i386-dis.o $(QEMU_DIR_BUILD)/arm-dis.o $(QEMU_DIR_BUILD)/tcg/tcg.o $(QEMU_DIR_BUILD)/iwmmxt_helper.o $(QEMU_DIR_BUILD)/neon_helper.o
 X49GP_LDFLAGS =
 X49GP_LIBS = $(QEMU_OBJS)
-endif
 QEMU_INCDIR=$(QEMU_DIR)
 QEMU_INC=-I$(QEMU_INCDIR)/target-arm -I$(QEMU_INCDIR) -I$(QEMU_INCDIR)/fpu -I$(QEMU_INCDIR)/arm-softmmu
 
@@ -89,11 +73,7 @@ INSTALL_MENU_DIR = "$(INSTALL_PREFIX)"/share/applications
 INSTALL_MAN_DIR = "$(INSTALL_PREFIX)/share/man/man1"
 DEFINES += -DX49GP_DATADIR=\"$(INSTALL_DATA_DIR)\"
 
-ifdef QEMU_OLD
-CC = $(shell if [ "`uname -s`" = "Darwin" ]; then echo "gcc"; else echo "gcc-3.4"; fi)
-else
 CC = gcc
-endif
 LD = $(CC)
 AR = ar
 RANLIB = ranlib
@@ -110,10 +90,6 @@ MAKEDEPEND = $(CC) -MM
 
 CFLAGS += $(shell pkg-config --cflags gtk+-2.0)
 LDLIBS += $(shell pkg-config --libs gtk+-2.0) -lz -lm
-
-ifdef QEMU_OLD
-export MAKE MAKEDEPEND CC LD AR RANLIB CFLAGS LDFLAGS
-endif
 
 LIBS = $(QEMU)
 
@@ -139,22 +115,12 @@ SRCS = main.c module.c flash.c sram.c s3c2410.c \
 
 OBJS = $(SRCS:.c=.o)
 
-ifdef QEMU_OLD
-VVFATOBJS = $(QEMU)/arm-softmmu/block-vvfat.o \
-	$(QEMU)/arm-softmmu/block-qcow.o \
-	$(QEMU)/arm-softmmu/block-raw.o
-else
 # TEMPO hack
 VVFATOBJS = block-vvfat.o \
 	block-qcow.o \
 	block-raw.o
-endif
 
-ifdef QEMU_OLD
-VVFATOBJS += $(QEMU)/arm-softmmu/cutils.o
-else
 VVFATOBJS += $(QEMU_DIR)/cutils.o
-endif
 
 TARGET = x49gp
 TARGET_ALLCAPS = X49GP
@@ -168,13 +134,8 @@ else
 do-it-all: depend-and-build
 endif
 
-ifdef QEMU_OLD
-$(TARGET): $(OBJS) $(VVFATOBJS) $(QEMU)/arm-softmmu/libqemu.a
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(VVFATOBJS) $(LDLIBS)
-else
 $(TARGET): $(OBJS) $(VVFATOBJS) $(QEMU_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(VVFATOBJS) $(LDLIBS)
-endif
 
 install: all $(TARGET).desktop $(TARGET).man
 	install -D -m 755 $(TARGET) "$(INSTALL_BINARY_DIR)/$(TARGET)"
@@ -202,18 +163,7 @@ endif
 sim: dummy
 	$(MAKE) -C $@
 
-ifdef QEMU_OLD
-$(QEMU): $(QEMU)/config-host.h dummy
-	+$(QEMUMAKE) -C $@
-
-$(QEMU)/config-host.h: $(QEMUSRC)
-	cd qemu; ./prepare.sh
-	$(MAKE) -C . all
-
-$(QEMU)/arm-softmmu/%.o: $(QEMU)/%.c
-	+$(QEMUMAKE) BASE_CFLAGS=-DX49GP -C $(QEMU)/arm-softmmu $(shell basename $@)
-else
-$(QEMU)/config-host.h: $(QEMUSRC)
+$(QEMU)/config-host.h:
 	+( cd $(QEMU); \
 	./configure-small --extra-cflags=-DX49GP; \
 	$(QEMUMAKE) -f Makefile-small )
@@ -222,7 +172,6 @@ $(QEMU_OBJS): _dir_qemu
 
 _dir_qemu: dummy
 	+$(QEMUMAKE) -C $(QEMU) -f Makefile-small
-endif
 
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
@@ -230,36 +179,6 @@ endif
 block-vvfat.o: block-vvfat.c
 	$(CC) $(CFLAGS) -fno-aggressive-loop-optimizations -o $@ -c $<
 
-ifdef QEMU_OLD
-clean-libs:
-	if [ -n "$(LIBS)" ]; then \
-		for d in $(LIBS); do \
-			$(MAKE) -C $$d clean; \
-		done \
-	fi
-
-clean: clean-libs
-	rm -f *.o core *~ .depend
-
-distclean: clean
-	rm -rf $(QEMU)
-	rm -f $(TARGET) $(TARGET).desktop $(TARGET).man
-
-depend-and-build: depend
-	$(MAKE) -C . all
-
-depend-libs: $(QEMU)/config-host.h
-	if [ -n "$(LIBS)" ]; then \
-		for d in $(LIBS); do \
-			if [ "$$d" != "$(QEMU)" ]; then \
-				$(MAKE) -C $$d depend; \
-			fi \
-		done \
-	fi
-
-depend: depend-libs
-	$(MAKEDEPEND) $(CFLAGS) $(SRCS) >.depend
-else
 clean-qemu:
 	$(MAKE) -C $(QEMU) -f Makefile-small clean
 
@@ -277,6 +196,5 @@ depend-and-build: depend
 
 depend: depend-libs
 	$(MAKEDEPEND) $(CFLAGS) $(SRCS) >.depend
-endif
 
 dummy:

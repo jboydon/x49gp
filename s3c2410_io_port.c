@@ -191,9 +191,6 @@ s3c2410_io_port_read(void *opaque, target_phys_addr_t offset)
 	s3c2410_io_port_t *io = opaque;
 	s3c2410_offset_t *reg;
 
-#ifdef QEMU_OLD
-	offset -= S3C2410_IO_PORT_BASE;
-#endif
 	if (! S3C2410_OFFSET_OK(io, offset)) {
 		fprintf(stderr, "%s:%u: offset %08lx not OK\n", __FUNCTION__, __LINE__, (unsigned long) offset);
 		abort();
@@ -277,9 +274,6 @@ s3c2410_io_port_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 	uint32_t change;
 static uint32_t lcd_data = 0;
 
-#ifdef QEMU_OLD
-	offset -= S3C2410_IO_PORT_BASE;
-#endif
 	if (! S3C2410_OFFSET_OK(io, offset)) {
 		return;
 	}
@@ -656,13 +650,8 @@ s3c2410_io_port_init(x49gp_module_t *module)
 	module->x49gp->s3c2410_io_port = io;
 	io->x49gp = module->x49gp;
 
-#ifdef QEMU_OLD
-	iotype = cpu_register_io_memory(0, s3c2410_io_port_readfn,
-					s3c2410_io_port_writefn, io);
-#else
 	iotype = cpu_register_io_memory(s3c2410_io_port_readfn,
 					s3c2410_io_port_writefn, io);
-#endif
 #ifdef DEBUG_S3C2410_IO_PORT
 	printf("%s: iotype %08x\n", __FUNCTION__, iotype);
 #endif

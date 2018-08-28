@@ -44,12 +44,8 @@ x49gp_modules_init(x49gp_t *x49gp)
 	phys_ram_dirty = qemu_vmalloc(phys_ram_size >> TARGET_PAGE_BITS);
 	memset(phys_ram_dirty, 0xff, phys_ram_size >> TARGET_PAGE_BITS);
 
-#ifndef QEMU_OLD
-        {
-          ram_addr_t x49gp_ram_alloc(ram_addr_t size, uint8_t *base);
-          x49gp_ram_alloc(phys_ram_size, phys_ram_base);
-        }
-#endif
+	ram_addr_t x49gp_ram_alloc(ram_addr_t size, uint8_t *base);
+	x49gp_ram_alloc(phys_ram_size, phys_ram_base);
 
 	return 0;
 }

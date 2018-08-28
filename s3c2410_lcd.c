@@ -192,9 +192,6 @@ s3c2410_lcd_read(void *opaque, target_phys_addr_t offset)
 	s3c2410_offset_t *reg;
 	uint32_t linecnt;
 
-#ifdef QEMU_OLD
-	offset -= S3C2410_LCD_BASE;
-#endif
 	if (! S3C2410_OFFSET_OK(lcd, offset)) {
 		return ~(0);
 	}
@@ -230,9 +227,6 @@ s3c2410_lcd_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 	x49gp_t *x49gp = lcd->x49gp;
 	s3c2410_offset_t *reg;
 
-#ifdef QEMU_OLD
-	offset -= S3C2410_LCD_BASE;
-#endif
 	if (! S3C2410_OFFSET_OK(lcd, offset)) {
 		return;
 	}
@@ -372,13 +366,8 @@ s3c2410_lcd_init(x49gp_module_t *module)
 	module->x49gp->s3c2410_lcd = lcd;
 	lcd->x49gp = module->x49gp;
 
-#ifdef QEMU_OLD
-	iotype = cpu_register_io_memory(0, s3c2410_lcd_readfn,
-					s3c2410_lcd_writefn, lcd);
-#else
 	iotype = cpu_register_io_memory(s3c2410_lcd_readfn,
 					s3c2410_lcd_writefn, lcd);
-#endif
 #ifdef DEBUG_S3C2410_LCD
 	printf("%s: iotype %08x\n", __FUNCTION__, iotype);
 #endif

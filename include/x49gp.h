@@ -19,10 +19,8 @@
 #include <list.h>
 
 /* LD TEMPO HACK */
-#ifndef QEMU_OLD
 extern uint8_t *phys_ram_base;
 extern int phys_ram_size;
-#endif
 
 typedef enum {
 	X49GP_ARM_RUN = 0,

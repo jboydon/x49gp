@@ -353,13 +353,7 @@ static int gdb_handle_packet(GDBState *s, CPUState *env, const char *line_buf)
             p++;
         len = strtoull(p, (char **)&p, 16);
         if (type == 0 || type == 1) {
-            if (
-#ifdef QEMU_OLD
-                cpu_breakpoint_insert(env, addr) < 0
-#else
-                cpu_breakpoint_insert(env, addr, BP_GDB, NULL) < 0
-#endif
-                )
+            if (cpu_breakpoint_insert(env, addr, BP_GDB, NULL) < 0)
                 goto breakpoint_error;
             put_packet(s, "OK");
         } else {
@@ -376,11 +370,7 @@ static int gdb_handle_packet(GDBState *s, CPUState *env, const char *line_buf)
             p++;
         len = strtoull(p, (char **)&p, 16);
         if (type == 0 || type == 1) {
-#ifdef QEMU_OLD
-            cpu_breakpoint_remove(env, addr);
-#else
             cpu_breakpoint_remove(env, addr, BP_GDB);
-#endif
             put_packet(s, "OK");
         } else {
             goto breakpoint_error;
@@ -441,11 +431,7 @@ void gdb_do_syscall(gdb_syscall_complete_cb cb, char *fmt, ...)
     }
     va_end(va);
     put_packet(s, buf);
-#ifdef QEMU_OLD
-    cpu_interrupt(s->env, CPU_INTERRUPT_EXIT);
-#else
     cpu_exit(s->env);
-#endif
 }
 
 static void gdb_read_byte(GDBState *s, int ch)

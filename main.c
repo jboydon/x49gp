@@ -27,15 +27,11 @@
 
 static x49gp_t *x49gp;
 
-#ifdef QEMU_OLD // LD TEMPO HACK
-extern
-#endif
+/* LD TEMPO HACK */
 CPUState *__GLOBAL_env;
 
 int semihosting_enabled = 1;
 
-/* LD TEMPO HACK */
-#ifndef QEMU_OLD
 uint8_t *phys_ram_base;
 int phys_ram_size;
 ram_addr_t ram_size = 0x80000; // LD ???
@@ -107,8 +103,6 @@ void gdb_register_coprocessor(CPUState * env,
   fprintf(stderr, "TODO: %s\n", __FUNCTION__);
 }
 
-#endif /* !QEMU_OLD */
-
 void *
 qemu_malloc(size_t size)
 {
@@ -146,45 +140,17 @@ qemu_vmalloc(size_t size)
 #endif
 }
 
-#ifdef QEMU_OLD
-int
-term_vprintf(const char *fmt, va_list ap)
-{
-	return vprintf(fmt, ap);
-}
-
-int
-term_printf(const char *fmt, ...)
-{
-	va_list ap;
-	int n;
-
-	va_start(ap, fmt);
-	n = vprintf(fmt, ap);
-	va_end(ap);
-
-	return n;
-}
-#endif
-
 #define SWI_Breakpoint 0x180000
 
-#ifdef QEMU_OLD
-int
-do_arm_semihosting(CPUState *env, uint32_t number)
-#else
 uint32_t
 do_arm_semihosting(CPUState *env)
-#endif
 {
-#ifndef QEMU_OLD
-  uint32_t number;
-  if (env->thumb) {
-    number = lduw_code(env->regs[15] - 2) & 0xff;
-  } else {
-    number = ldl_code(env->regs[15] - 4) & 0xffffff;
-  }
-#endif
+	uint32_t number;
+	if (env->thumb) {
+		number = lduw_code(env->regs[15] - 2) & 0xff;
+	} else {
+		number = ldl_code(env->regs[15] - 4) & 0xffffff;
+	}
 	switch (number) {
 	case SWI_Breakpoint:
 		break;
@@ -244,11 +210,7 @@ x49gp_set_idle(x49gp_t *x49gp, x49gp_arm_idle_t idle)
 		x49gp->env->halted = 0;
 	} else {
 		x49gp->env->halted = 1;
-#ifdef QEMU_OLD
-		cpu_interrupt(x49gp->env, CPU_INTERRUPT_EXIT);
-#else
-                cpu_exit(x49gp->env);
-#endif
+		cpu_exit(x49gp->env);
 	}
 }
 
@@ -551,11 +513,7 @@ ui_sighnd(int sig)
 	case SIGQUIT:
 	case SIGTERM:
 		x49gp->arm_exit = 1;
-#ifdef QEMU_OLD
-		cpu_interrupt(x49gp->env, CPU_INTERRUPT_EXIT);
-#else
-                cpu_exit(x49gp->env);
-#endif
+		cpu_exit(x49gp->env);
 		break;
 	}
 }
@@ -606,13 +564,9 @@ main(int argc, char **argv)
 	x49gp->PCLK_ratio = 4;
 	x49gp->PCLK = 75000000 / 4;
 
-#ifdef QEMU_OLD
-	x49gp->env = cpu_init();
-#else
-        //cpu_set_log(0xffffffff);
-        cpu_exec_init_all(0);
+	//cpu_set_log(0xffffffff);
+	cpu_exec_init_all(0);
 	x49gp->env = cpu_init("arm926");
-#endif
 	__GLOBAL_env = x49gp->env;
 
 //	cpu_set_log(cpu_str_to_log_mask("all"));

@@ -330,10 +330,6 @@ flash_readb(void *opaque, target_phys_addr_t offset)
 	uint32_t shift;
 	unsigned char data;
 
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t) phys_ram_base + flash->offset;
-#endif
-
 	if (flash->state == FLASH_STATE_NORMAL) {
 		data = *(datap + offset);
 	} else {
@@ -357,10 +353,6 @@ flash_readw(void *opaque, target_phys_addr_t offset)
 	uint8_t *datap = flash->data;
 	uint32_t data;
 
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t) phys_ram_base + flash->offset;
-#endif
-
 	if (flash->state == FLASH_STATE_NORMAL) {
 		data = lduw_p(datap + offset);
 	} else {
@@ -381,10 +373,6 @@ flash_readl(void *opaque, target_phys_addr_t offset)
 	x49gp_flash_t *flash = opaque;
 	uint8_t *datap = flash->data;
 	uint32_t data;
-
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t) phys_ram_base + flash->offset;
-#endif
 
 	if (flash->state == FLASH_STATE_NORMAL) {
 		data = ldl_p(datap + offset);
@@ -407,10 +395,6 @@ flash_writeb(void *opaque, target_phys_addr_t offset, uint32_t data)
 	x49gp_flash_t *flash = opaque;
 	uint32_t shift;
 
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t) phys_ram_base + flash->offset;
-#endif
-
 	data &= 0xff;
 
 #ifdef DEBUG_X49GP_FLASH_WRITE
@@ -432,10 +416,6 @@ flash_writew(void *opaque, target_phys_addr_t offset, uint32_t data)
 {
 	x49gp_flash_t *flash = opaque;
 
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t) phys_ram_base + flash->offset;
-#endif
-
 	data &= 0xffff;
 
 #ifdef DEBUG_X49GP_FLASH_WRITE
@@ -450,10 +430,6 @@ static void
 flash_writel(void *opaque, target_phys_addr_t offset, uint32_t data)
 {
 	x49gp_flash_t *flash = opaque;
-
-#ifdef QEMU_OLD
-	offset -= (target_phys_addr_t) phys_ram_base + flash->offset;
-#endif
 
 #ifdef DEBUG_X49GP_FLASH_WRITE
 	printf("write FLASH 4 (state %u) at offset %08lx: %08x\n",
@@ -656,13 +632,8 @@ flash_init(x49gp_module_t *module)
 
 	module->user_data = flash;
 
-#ifdef QEMU_OLD
-	flash->iotype = cpu_register_io_memory(0, flash_readfn,
-					       flash_writefn, flash);
-#else
 	flash->iotype = cpu_register_io_memory(flash_readfn,
 					       flash_writefn, flash);
-#endif
 
 	flash->data = (void *) -1;
 	flash->offset = phys_ram_size;

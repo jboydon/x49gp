@@ -21,12 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifdef QEMU_OLD
-#include "vl.h"
-#else
 #include "qemu-common.h"
 #include "block.h"
-#endif
 #include "block_int.h"
 #include <assert.h>
 #ifndef _WIN32
