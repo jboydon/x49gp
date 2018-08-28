@@ -243,7 +243,7 @@ clean: clean-libs
 
 distclean: clean
 	rm -rf $(QEMU)
-	rm -f $(TARGET) $(TARGET).desktop $(TARGET).man $(TARGET).man
+	rm -f $(TARGET) $(TARGET).desktop $(TARGET).man
 
 depend-and-build: depend
 	$(MAKE) -C . all
@@ -268,7 +268,7 @@ clean: clean-qemu
 
 distclean: clean
 	$(MAKE) -C $(QEMU) -f Makefile-small distclean
-	rm -f $(TARGET) $(TARGET).desktop $(TARGET).man $(TARGET).man
+	rm -f $(TARGET) $(TARGET).desktop $(TARGET).man
 
 depend-libs: $(QEMU)/config-host.h
 

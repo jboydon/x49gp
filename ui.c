@@ -1854,11 +1854,11 @@ x49gp_ui_key_event(GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 	case GDK_KEY_space: case GDK_KEY_KP_Space:	index = 49;	break;
 	case GDK_KEY_Return: case GDK_KEY_KP_Enter:	index = 50;	break;
 
-	/* QUERTY compat: US English, UK English, International English */
+	/* QWERTY compat: US English, UK English, International English */
 	case GDK_KEY_backslash:				index = 35;	break;
 	case GDK_KEY_equal:				index = 45;	break;
 
-	/* QUERTZ compat: German */
+	/* QWERTZ compat: German */
 	case GDK_KEY_ssharp:				index = 30;	break;
 	case GDK_KEY_numbersign:			index = 35;	break;
 
