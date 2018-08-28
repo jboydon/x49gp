@@ -888,11 +888,14 @@ static int init_directories(BDRVVVFATState* s,
     stat(dirname, &st);
     entry = array_get_next(&(s->directory));
     entry->attributes = 0x08; /* archive | volume label */
-    memset(entry->name, ' ', 11);
+    memset(entry->name, ' ', 8);
+    memset(entry->extension, ' ', 3);
     namelen = strlen(VOLUME_LABEL);
     if (namelen > 11)
 	namelen = 11;
-    memcpy(entry->name, VOLUME_LABEL, namelen);
+    memcpy(entry->name, VOLUME_LABEL, namelen > 8 ? 8 : namelen);
+    if (namelen > 8)
+	memcpy(entry->extension, VOLUME_LABEL+8, namelen-8);
     entry->reserved[0] = entry->reserved[1] = 0;
     entry->ctime = fat_datetime(st.st_ctime, 1);
     entry->cdate = fat_datetime(st.st_ctime, 0);
@@ -2353,8 +2356,11 @@ static int commit_one_file(BDRVVVFATState* s,
 	c = c1;
     }
 
-    ftruncate(fd, size);
-    close(fd);
+    if (ftruncate(fd, size)) {
+        perror("ftruncate()");
+        close(fd);
+        return -4;
+    }
 
     return commit_mappings(s, first_cluster, dir_index);
 }
