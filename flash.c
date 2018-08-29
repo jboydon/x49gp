@@ -450,8 +450,10 @@ flash_load(x49gp_module_t *module, GKeyFile *key)
 	char *filename;
 	struct stat st;
 	char *bootfile;
-	int bootfd;
+	int bootfd, fwfd;
 	int error;
+	int i;
+	char bank_marker[5] = {0xf0, 0x02, 0x00, 0x00, 0x00};
 
 #ifdef DEBUG_X49GP_MODULES
 	printf("%s: %s:%u\n", module->name, __FUNCTION__, __LINE__);
@@ -507,14 +509,12 @@ flash_load(x49gp_module_t *module, GKeyFile *key)
 		return error;
 	}
 
-	g_free(filename);
-
 
 	if (flash->size > st.st_size) {
 		fprintf(stderr, "Flash too small, rebuilding\n");
 
-		memset(phys_ram_base + flash->offset + st.st_size,
-		       0xFF, flash->size - st.st_size);
+		memset(phys_ram_base + flash->offset, 0xff,
+		       flash->size - st.st_size);
 
 		bootfd = x49gp_module_open_rodata(module,
 						  calc == UI_CALCULATOR_HP49GP ?
@@ -535,6 +535,7 @@ flash_load(x49gp_module_t *module, GKeyFile *key)
 			fprintf(stderr, "%s: %s:%u: read %s: %s\n",
 				module->name, __FUNCTION__, __LINE__,
 				filename, strerror(errno));
+			g_free(filename);
 			g_free(bootfile);
 			close(bootfd);
 			close(flash->fd);
@@ -542,8 +543,64 @@ flash_load(x49gp_module_t *module, GKeyFile *key)
 			return error;
 		}
 
+		g_free(filename);
 		close(bootfd);
 		g_free(bootfile);
+
+		/* The stock firmware expects special markers in certain spots
+		   across the flash. Without these, the user banks act up and
+		   are not usable, and PINIT apparently won't fix it.
+		   Let's help it out; custom firmware will have to deal with
+		   remnants of the user banks on real calculators anyway,
+		   so if they break here, they will too on actual hardware
+		   because that always comes with the stock firmware and
+		   its user banks marked properly. */
+		for (i=2;i<14;i++) {
+			bank_marker[1] = i;
+			memcpy(phys_ram_base + flash->offset + 0x40100 +
+			       0x20000 * i, bank_marker, 5);
+		}
+
+		filename = NULL;
+		x49gp_ui_open_firmware(x49gp, &filename);
+		if (filename != NULL) {
+			fwfd = open(filename, O_RDONLY);
+			if (fwfd < 0) {
+				fprintf(stderr, "%s: %s:%u: open %s: %s\n",
+					module->name, __FUNCTION__, __LINE__,
+					filename, strerror(errno));
+				fprintf(stderr, "Warning: Could not open "
+					"selected firmware, falling back to "
+					"bootloader recovery tools\n");
+			} else {
+				/* The firmware may be shorter than
+				   SST29VF160_SIZE - BOOT_SIZE, but if so,
+				   read will just give us what it sees.
+				   The space after that will remain empty. */
+				if (read(fwfd, phys_ram_base + flash->offset +
+					 BOOT_SIZE,
+					 SST29VF160_SIZE - BOOT_SIZE) < 0) {
+					fprintf(stderr, "%s: %s:%u: read %s: %s\n",
+						module->name, __FUNCTION__, 
+					        __LINE__, filename,
+					        strerror(errno));
+					fprintf(stderr, "Warning: Could not "
+						"read selected firmware, "
+						"falling back to bootloader "
+						"recovery tools\n");
+				} else {
+					/* Mark the firmware as valid in the
+					   same way the bootloader does */
+					memcpy(phys_ram_base + flash->offset +
+					       BOOT_SIZE, "Kinposhcopyright",
+					       16);
+				}
+				close(fwfd);
+			}
+			g_free(filename);
+		}
+	} else {
+		g_free(filename);
 	}
 
 	return error;

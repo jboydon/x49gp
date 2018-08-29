@@ -1532,6 +1532,13 @@ x49gp_ui_choose_file(x49gp_t *x49gp, const char *prompt,
 	gtk_widget_destroy(dialog);
 }
 
+void
+x49gp_ui_open_firmware(x49gp_t *x49gp, char **filename)
+{
+	x49gp_ui_choose_file(x49gp, "Choose firmware ...",
+			     GTK_FILE_CHOOSER_ACTION_OPEN, filename);
+}
+
 static gboolean
 x49gp_ui_button_press(GtkWidget *widget, GdkEventButton *event,
 		      gpointer user_data)
