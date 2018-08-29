@@ -254,6 +254,8 @@ struct options {
 	char *config;
 	int debug_port;
 	int start_debugger;
+	char *firmware;
+	x49gp_reinit_t reinit;
 
 	int more_options;
 };
@@ -272,9 +274,16 @@ struct option_def {
 static int action_help(struct options *opt, struct option_def *match,
 		       char *this_opt, char *param, char *progname);
 static int action_debuglater(struct options *opt, struct option_def *match,
-							 char *this_opt, char *param, char *progname);
+			     char *this_opt, char *param, char *progname);
 static int action_debug(struct options *opt, struct option_def *match,
 			char *this_opt, char *param, char *progname);
+static int action_reinit_flash(struct options *opt, struct option_def *match,
+			      char *this_opt, char *param, char *progname);
+static int action_reinit_flash_full(struct options *opt,
+				    struct option_def *match, char *this_opt,
+				    char *param, char *progname);
+static int action_reboot(struct options *opt, struct option_def *match,
+			 char *this_opt, char *param, char *progname);
 
 static int action_unknown_with_param(struct options *opt,
 				     struct option_def *match, char *this_opt,
@@ -288,6 +297,9 @@ struct option_def option_defs[] = {
 	{ action_help, "help", 'h' },
 	{ action_debuglater, "enable-debug", 'D' },
 	{ action_debug, "debug", 'd' },
+	{ action_reinit_flash, "reflash", 'f' },
+	{ action_reinit_flash_full, "reflash-full", 'F' },
+	{ action_reboot, "reboot", 'r' },
 
 	{ action_longopt, NULL, '-' },
 	{ action_unknown_with_param, NULL, '=' },
@@ -315,11 +327,25 @@ action_help(struct options *opt, struct option_def *match, char *this_opt,
 	fprintf(stderr, "Emulator for HP 49G+ / 50G calculators\n"
 		"Usage: %s [<options>] [<config-file>]\n"
 		"Valid options:\n"
-		" -D, --enable-debug[=<port] enable the debugger interface\n"
-		"                            (default port: %u)\n"
-		" -d, --debug[=<port>]       like -D, but also start the"
+		" -D, --enable-debug[=<port]    enable the debugger interface\n"
+		"                               (default port: %u)\n"
+		" -d, --debug[=<port>]          like -D, but also start the"
 		" debugger immediately\n"
-		" -h, --help                 print this message and exit\n"
+		" -f, --reflash[=firmware]      rebuild the flash using the"
+		" supplied firmware\n"
+		"                               (default: select one"
+		" interactively)\n"
+		"                               (implies -r for safety"
+		" reasons)\n"
+		" -F, --reflash-full[=firmware] like -f, but don't preserve the"
+		" flash contents\n"
+		"                               in the area beyond the"
+		" firmware\n"
+		" -r, --reboot                  reboot on startup instead of"
+		" continuing from the\n"
+		"                               saved state in the config"
+		" file\n"
+		" -h, --help                    print this message and exit\n"
 		"The config file is formatted as INI file and contains the"
 		" settings for which\n"
 		"persistence makes sense, like calculator model, CPU"
@@ -364,6 +390,45 @@ action_debug(struct options *opt, struct option_def *match, char *this_opt,
 {
 	opt->start_debugger = TRUE;
 	return action_debuglater(opt, match, this_opt, param, progname);
+}
+
+static int
+action_reinit_flash(struct options *opt, struct option_def *match,
+		    char *this_opt, char *param, char *progname)
+{
+	if (opt->reinit < X49GP_REINIT_FLASH)
+		opt->reinit = X49GP_REINIT_FLASH;
+
+	if (param == NULL)
+		return FALSE;
+
+	if (opt->firmware != NULL)
+		fprintf(stderr, "Additional firmware file \"%s\" specified,"
+		" overriding\n", param);
+	opt->firmware = param;
+	return TRUE;
+}
+
+static int
+action_reinit_flash_full(struct options *opt,
+			 struct option_def *match, char *this_opt,
+			 char *param, char *progname)
+{
+	int result = action_reinit_flash(opt, match, this_opt, param, progname);
+	opt->reinit = X49GP_REINIT_FLASH_FULL;
+	return result;
+}
+
+static int
+action_reboot(struct options *opt, struct option_def *match, char *this_opt,
+	      char *param, char *progname)
+{
+	if (param != NULL)
+		warn_unneeded_param(match, this_opt);
+
+	if (opt->reinit < X49GP_REINIT_REBOOT_ONLY)
+		opt->reinit = X49GP_REINIT_REBOOT_ONLY;
+	return param != NULL;
 }
 
 static int
@@ -530,6 +595,8 @@ main(int argc, char **argv)
 	opt.config = NULL;
 	opt.debug_port = 0;
 	opt.start_debugger = FALSE;
+	opt.reinit = X49GP_REINIT_NONE;
+	opt.firmware = NULL;
 	parse_options(&opt, argc, argv, progname);
 
 	x49gp = malloc(sizeof(x49gp_t));
@@ -595,10 +662,12 @@ main(int argc, char **argv)
 
 	x49gp->basename = g_path_get_dirname(opt.config);
 	x49gp->debug_port = opt.debug_port;
+	x49gp->startup_reinit = opt.reinit;
+	x49gp->firmware = opt.firmware;
 
 	error = x49gp_modules_load(x49gp, opt.config);
-	if (error) {
-		if (error != -EAGAIN) {
+	if (error || opt.reinit >= X49GP_REINIT_REBOOT_ONLY) {
+		if (error && error != -EAGAIN) {
 			exit(1);
 		}
 		x49gp_modules_reset(x49gp, X49GP_RESET_POWER_ON);

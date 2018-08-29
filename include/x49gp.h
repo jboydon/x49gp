@@ -54,6 +54,12 @@ struct __x49gp_module_s__ {
 	struct list_head	list;
 };
 
+typedef enum {
+	X49GP_REINIT_NONE = 0,
+	X49GP_REINIT_REBOOT_ONLY,
+	X49GP_REINIT_FLASH,
+	X49GP_REINIT_FLASH_FULL
+} x49gp_reinit_t;
 
 struct __x49gp_s__ {
 	CPUARMState		*env;
@@ -96,7 +102,9 @@ struct __x49gp_s__ {
 	const char		*progname;
 	const char		*progpath;
 	const char		*basename;
-	int				debug_port;
+	int			debug_port;
+	x49gp_reinit_t		startup_reinit;
+	char			*firmware;
 };
 
 extern void	x49gp_set_idle(x49gp_t *, x49gp_arm_idle_t idle);
