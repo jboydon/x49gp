@@ -54,6 +54,8 @@ typedef struct {
 	unsigned int		write_index;
 
 	int			multiple_block;
+        int                     acmd;
+        int                     card_state;
 } s3c2410_sdi_t;
 
 
@@ -227,17 +229,18 @@ s3c2410_sdi_read(void *opaque, target_phys_addr_t offset)
 
 	switch (offset) {
 	case S3C2410_SDI_SDIDAT:
+            if( (sdi->sdidcon&0x3000)==0x2000) {
 		read_avail = sdi->nr_read_data - sdi->read_index;
 		if (read_avail > 0) {
-			*(reg->datap) = sdi->read_data[sdi->read_index++] << 24;
+                        *(reg->datap) = sdi->read_data[sdi->read_index++] << 0;
 			if ((sdi->nr_read_data - sdi->read_index) > 0) {
-				*(reg->datap) |= sdi->read_data[sdi->read_index++] << 16;
+                                *(reg->datap) |= sdi->read_data[sdi->read_index++] << 8;
 			}
 			if ((sdi->nr_read_data - sdi->read_index) > 0) {
-				*(reg->datap) |= sdi->read_data[sdi->read_index++] << 8;
+                                *(reg->datap) |= sdi->read_data[sdi->read_index++] << 16;
 			}
 			if ((sdi->nr_read_data - sdi->read_index) > 0) {
-				*(reg->datap) |= sdi->read_data[sdi->read_index++] << 0;
+                                *(reg->datap) |= sdi->read_data[sdi->read_index++] << 24;
 			}
 
 			if (sdi->read_index >= sdi->nr_read_data) {
@@ -253,12 +256,15 @@ s3c2410_sdi_read(void *opaque, target_phys_addr_t offset)
 					sdi->sdidsta |= (1 << 9) | (1 << 4);
 				} else {
 					sdi->nr_read_data = 0;
+                                        sdi->sdidcon&=~0x3000;
 				}
 			}
 
 			read_avail = sdi->nr_read_data - sdi->read_index;
 
 			sdi->sdidcnt = read_avail;
+                }
+                else *(reg->datap)=0;
 		}
 		break;
 
@@ -275,15 +281,18 @@ s3c2410_sdi_read(void *opaque, target_phys_addr_t offset)
 		break;
 
 	case S3C2410_SDI_SDIDSTA:
-		*(reg->datap) &= ~(0x0f);
-
+                *(reg->datap) &= ~(0x03);
+                if( (sdi->sdidcon&0x3000)==0x1000) {
+                    *(reg->datap) |= (1 << 3);
+                    sdi->sdidcon&=~0x3000;  // BACK TO READY STATE
+                }
 		read_avail = sdi->nr_read_data - sdi->read_index;
-		if (read_avail) {
+                if ( ((sdi->sdidcon&0x3000)==0x2000) && read_avail) {
 			*(reg->datap) |= (1 << 0);
 		}
 
 		write_avail = sdi->nr_write_data - sdi->write_index;
-		if (write_avail) {
+                if ( ((sdi->sdidcon&0x3000)==0x3000) && write_avail) {
 			*(reg->datap) |= (1 << 1);
 		}
 	}
@@ -349,8 +358,11 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 		if (data & (1 << 9)) {
 			sdi->sdicsta |= (1 << 9);
 
-			switch (data & 0x3f) {
+                        switch ((data & 0x3f)+(sdi->acmd<<8)) {
+                        case 256:
 			case 0:
+                                sdi->acmd=0;
+                                sdi->card_state=0;
 				break;
 
 			case 1:
@@ -360,6 +372,7 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 				break;
 
 			case 2:
+                                sdi->card_state=2;
 				sdi->sdicsta |= 0x3f;
 				sdi->sdirsp0 = 0x02000053;
 				sdi->sdirsp1 = 0x444d3036;
@@ -368,8 +381,12 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 				break;
 
 			case 3:
+                                sdi->card_state=3;
 				sdi->sdicsta |= 3;
-				sdi->sdirsp0 = 0x00000700;
+                                sdi->sdirsp0 = sdi->card_state<<9;
+                                if(sdi->card_state==5) sdi->sdirsp0 |=0x100;
+                                if(sdi->acmd) sdi->sdirsp0|=0x20;
+                                sdi->sdirsp0|=0x12340000;   // PUBLISHED RCA NUMBER
 				sdi->sdirsp1 = 0xff000000;
 				break;
 
@@ -378,6 +395,9 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 				sdi->sdirsp0 = 0x00000900;
 				sdi->sdirsp1 = 0xff000000;
 				break;
+                        case 8:
+                                sdi->sdicsta |=0x400;   // SEND TIMEOUT IMMEDIATELY
+                            break;
 
 			case 9:
 			{
@@ -418,6 +438,14 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 				sdi->sdirsp0 = 0x00000900;
 				sdi->sdirsp1 = 0xff000000;
 				break;
+                        case 16:
+                            sdi->sdicsta |= 16;
+                            sdi->sdicsta |= data & 0x3f;
+                            sdi->sdirsp0 = sdi->card_state<<9;
+                            if(sdi->card_state==5) sdi->sdirsp0 |=0x100;
+                            if(sdi->acmd) sdi->sdirsp0|=0x20;
+                            sdi->sdirsp1 = 0xff000000;
+                            break;
 
 			case 18:
 				sdi->multiple_block = 1;
@@ -453,12 +481,49 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 				sdi->sdirsp1 = 0xff000000;
 				sdi->sdidcnt = (1 << 12) | write_avail;
 				break;
+                        case 256+55:
+                        case 55:
+                                sdi->acmd=1;
+                                sdi->sdicsta |= data & 0x3f;
+                                sdi->sdirsp0 = sdi->card_state<<9;
+                                if(sdi->card_state==5) sdi->sdirsp0 |=0x100;
+                                if(sdi->acmd) sdi->sdirsp0|=0x20;
+                                sdi->sdirsp1 = 0xff000000;
+                                break;
+                        case 256+41:
+                                // ACMD41
+                            sdi->card_state= 1; // READY
+                            sdi->sdicsta |= data & 0x3f;
+                            sdi->sdirsp0 = 0x80ff8000;
+                            sdi->sdirsp1 = 0xff000000;
+                            sdi->acmd=0;
+                            break;
+
+                        case 256+42:
+                                // ACMD42
+                            sdi->sdicsta |= data & 0x3f;
+                            sdi->sdirsp0 = sdi->card_state<<9;
+                            if(sdi->card_state==5) sdi->sdirsp0 |=0x100;
+                            if(sdi->acmd) sdi->sdirsp0|=0x20;
+                            sdi->sdirsp1 = 0xff000000;
+                            break;
+
+                        case 256+51:
+                                // ACMD51
+                            sdi->sdicsta |= 51;
+                            sdi->sdirsp0 = 0x0;
+                            sdi->sdirsp1 = 0x01050000;
+                            sdi->sdirsp2 = 0x0;
+                            sdi->sdirsp3 = 0x0;
+                            sdi->acmd=0;
+                            break;
 
 			default:
 				printf("unhandled SDcard CMD %u\n", (data & 0x3f));
 
 				sdi->sdicsta |= (1 << 10);
 				sdi->sdicsta &= ~(1 << 9);
+                                sdi->acmd=0;
 
 //				abort();
 				break;
@@ -469,18 +534,18 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 
 	case S3C2410_SDI_SDIDAT:
 		*(reg->datap) = data;
-
+            if((sdi->sdidcon&0x3000)==0x3000) {
 		write_avail = sdi->nr_write_data - sdi->write_index;
 		if (write_avail > 0) {
-			sdi->write_data[sdi->write_index++] = (*(reg->datap) >> 24) & 0xff;
+                        sdi->write_data[sdi->write_index++] = (*(reg->datap) >> 0) & 0xff;
 			if ((sdi->nr_write_data - sdi->write_index) > 0) {
-				sdi->write_data[sdi->write_index++] = (*(reg->datap) >> 16) & 0xff;
+                                sdi->write_data[sdi->write_index++] = (*(reg->datap) >> 8) & 0xff;
 			}
 			if ((sdi->nr_write_data - sdi->write_index) > 0) {
-				sdi->write_data[sdi->write_index++] = (*(reg->datap) >> 8) & 0xff;
+                                sdi->write_data[sdi->write_index++] = (*(reg->datap) >> 16) & 0xff;
 			}
 			if ((sdi->nr_write_data - sdi->write_index) > 0) {
-				sdi->write_data[sdi->write_index++] = (*(reg->datap) >> 0) & 0xff;
+                                sdi->write_data[sdi->write_index++] = (*(reg->datap) >> 24) & 0xff;
 			}
 
 			if (sdi->write_index >= sdi->nr_write_data) {
@@ -491,14 +556,17 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 					sdcard_write_prepare(sdi);
 				} else {
 					sdi->nr_write_data = 0;
+                                        sdi->sdidcon&=~0x3000;
 				}
 
-				sdi->sdidsta |= (1 << 9) | (1 << 4);
+                                sdi->sdidsta |= (1 << 9) | (1 << 4) | (1<<3);
 			}
 
 			write_avail = sdi->nr_write_data - sdi->write_index;
 
 			sdi->sdidcnt = write_avail;
+                        }
+
 		}
 		break;
 
@@ -507,7 +575,7 @@ s3c2410_sdi_write(void *opaque, target_phys_addr_t offset, uint32_t data)
 		break;
 
 	case S3C2410_SDI_SDIDSTA:
-		*(reg->datap) &= ~(data & 0x3f8);
+                *(reg->datap) &= ~(data & 0x7fc);
 		break;
 
 	case S3C2410_SDI_SDIFSTA:
