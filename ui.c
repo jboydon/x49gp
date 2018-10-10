@@ -371,6 +371,341 @@ static const x49gp_ui_key_t x49gp_ui_keys[] =
 };
 #define X49GP_UI_NR_KEYS (sizeof(x49gp_ui_keys) / sizeof(x49gp_ui_keys[0]))
 
+static const x49gp_ui_key_t x49gp_newrpl_ui_keys[] =
+{
+	{
+		"F1",	"A",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		  0,   0, 36, 22, 5, 1, (1 << 5), (1 << 1), 1
+	},
+	{
+		"F2",	"B",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		 50,   0, 36, 22, 5, 2, (1 << 5), (1 << 2), 2
+	},
+	{
+		"F3",	"C",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		 99,   0, 36, 22, 5, 3, (1 << 5), (1 << 3), 3
+	},
+	{
+		"F4",	"D",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		149,   0, 36, 22, 5, 4, (1 << 5), (1 << 4), 4
+	},
+	{
+		"F5",	"E",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		198,   0, 36, 22, 5, 5, (1 << 5), (1 << 5), 5
+	},
+	{
+		"F6",	"F",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		247,   0, 36, 22, 5, 6, (1 << 5), (1 << 6), 6
+	},
+	{
+		"",	"G",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		  0,  44, 36, 28, 5, 7, (1 << 5), (1 << 7), 7
+	},
+	{
+		"",	"H",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		 50,  44, 36, 28, 6, 5, (1 << 6), (1 << 5), 5
+	},
+	{
+		"",	"I",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		 99,  44, 36, 28, 6, 6, (1 << 6), (1 << 6), 6
+	},
+	{
+		"",	"J",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		  0,  92, 36, 28, 6, 7, (1 << 6), (1 << 7), 7
+	},
+	{
+		"",	"K",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		 50,  92, 36, 28, 7, 1, (1 << 7), (1 << 1), 1
+	},
+	{
+		"",	"L",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		 99,  92, 36, 28, 7, 2, (1 << 7), (1 << 2), 2
+	},
+	{
+		NULL,	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_SILVER, 0.0, 0,
+		UI_SHAPE_BUTTON_ROUND, 0.0, 0,
+		200,  38, 33, 33, 6, 1, (1 << 6), (1 << 1), 1
+	},
+	{
+		NULL,	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_SILVER, 0.0, 0,
+		UI_SHAPE_BUTTON_ROUND, 0.0, 0,
+		164,  66, 33, 33, 6, 2, (1 << 6), (1 << 2), 2
+	},
+	{
+		NULL,	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_SILVER, 0.0, 0,
+		UI_SHAPE_BUTTON_ROUND, 0.0, 0,
+		200,  94, 33, 33, 6, 3, (1 << 6), (1 << 3), 3
+	},
+	{
+		NULL,	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_SILVER, 0.0, 0,
+		UI_SHAPE_BUTTON_ROUND, 0.0, 0,
+		236,  66, 33, 33, 6, 4, (1 << 6), (1 << 4), 4
+	},
+	{
+		"S\\kern-1 T\\kern-1 O\\kern-1\\triangleright",	"M",	"RCL",	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		  0, 141, 46, 28, 4, 1, (1 << 4), (1 << 1), 1
+	},
+	{
+		"EV\\kern-1 AL",	"N",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		 59, 141, 46, 28, 3, 1, (1 << 3), (1 << 1), 1
+	},
+	{
+		"\\tick",	"O",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		119, 141, 46, 28, 2, 1, (1 << 2), (1 << 1), 1
+	},
+	{
+		"M\\kern-1 A\\kern-1 I\\kern-1 N",	"P",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		179, 141, 46, 28, 1, 1, (1 << 1), (1 << 1), 1
+	},
+	{
+		"\\arrowleftdblfull",	NULL,	NULL, "CLEAR",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 0.0, 0,
+		238, 141, 46, 28, 0, 1, (1 << 0), (1 << 1), 1
+	},
+	{
+		"Y\\super x\\/super",	"Q",	"\\math_e\\xsuperior",	"LN",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		  0, 183, 46, 28, 4, 2, (1 << 4), (1 << 2), 2
+	},
+	{
+		"\\radical\\overscore\\kern-7 X",	"R",
+		"\\math_x\\twosuperior",
+		"\\xsuperior\\kern-4\\math_radical\\overscore\\kern-5\\math_y",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		 59, 183, 46, 28, 3, 2, (1 << 3), (1 << 2), 2
+	},
+	{
+		"SIN",	"S",	"ASIN",	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		119, 183, 46, 28, 2, 2, (1 << 2), (1 << 2), 2
+	},
+	{
+		"COS",	"T",	"ACOS",	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		179, 183, 46, 28, 1, 2, (1 << 1), (1 << 2), 2
+	},
+	{
+		"TAN",	"U",	"ATAN",	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		238, 183, 46, 28, 0, 2, (1 << 0), (1 << 2), 2
+	},
+	{
+		"EEX",	"V",	"10\\xsuperior",	"LOG",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		  0, 225, 46, 28, 4, 3, (1 << 4), (1 << 3), 3
+	},
+	{
+		"+\\divisionslash\\minus",	"W",
+		"\\math_notequal",
+		"\\math_equal",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		 59, 225, 46, 28, 3, 3, (1 << 3), (1 << 3), 3
+	},
+	{
+		"X",	"X",
+		"\\math_lessequal",
+		"\\math_less",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		119, 225, 46, 28, 2, 3, (1 << 2), (1 << 3), 3
+	},
+	{
+		"1/X",	"Y",
+		"\\math_greaterequal",
+		"\\math_greater",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		179, 225, 46, 28, 1, 3, (1 << 1), (1 << 3), 3
+	},
+	{
+		"\\divide",	"Z",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT_NO_SPACE,
+		238, 225, 46, 28, 0, 3, (1 << 0), (1 << 3), 3
+	},
+	{
+		"ALPHA",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		  0, 267, 46, 32, 0, 0,        0,        0, 4
+	},
+	{
+		"7",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		 59, 267, 46, 32, 3, 4, (1 << 3), (1 << 4), 4
+	},
+	{
+		"8",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		119, 267, 46, 32, 2, 4, (1 << 2), (1 << 4), 4
+	},
+	{
+		"9",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		179, 267, 46, 32, 1, 4, (1 << 1), (1 << 4), 4
+	},
+	{
+		"\\multiply",	NULL,	"[ ]",	"\" \"",	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		238, 267, 46, 32, 0, 4, (1 << 0), (1 << 4), 4
+	},
+	{
+		"\\uparrowleft",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		  0, 313, 46, 32, 0, 0,        0,        0, 5
+	},
+	{
+		"4",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		 59, 313, 46, 32, 3, 5, (1 << 3), (1 << 5), 5
+	},
+	{
+		"5",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		119, 313, 46, 32, 2, 5, (1 << 2), (1 << 5), 5
+	},
+	{
+		"6",	NULL,	NULL,	"UNITS",	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		179, 313, 46, 32, 1, 5, (1 << 1), (1 << 5), 5
+	},
+	{
+		"\\minus",	NULL,	"( )",	"_",	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		238, 313, 46, 32, 0, 5, (1 << 0), (1 << 5), 5
+	},
+	{
+		"\\uparrowright",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		  0, 359, 46, 32, 0, 0,        0,        0, 6
+	},
+	{
+		"1",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		 59, 359, 46, 32, 3, 6, (1 << 3), (1 << 6), 6
+	},
+	{
+		"2",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		119, 359, 46, 32, 2, 6, (1 << 2), (1 << 6), 6
+	},
+	{
+		"3",	NULL,	"\\math_numbersign",	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		179, 359, 46, 32, 1, 6, (1 << 1), (1 << 6), 6
+	},
+	{
+		"+",	NULL,
+		"{ }",
+		"\\guillemotleft\\ \\guillemotright",
+		NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		238, 359, 46, 32, 0, 6, (1 << 0), (1 << 6), 6
+	},
+	{
+		"ON",	NULL,	NULL,	"OFF",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		  0, 405, 46, 32, 0, 0,        0,        0, 0
+	},
+	{
+		"0",	NULL,
+		"\\math_infinity",
+		"\\math_arrowright",
+		NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		 59, 405, 46, 32, 3, 7, (1 << 3), (1 << 7), 7
+	},
+	{
+		"\\bullet",	NULL,
+		": :",
+		"\\math_downarrowleft",
+		NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		119, 405, 46, 32, 2, 7, (1 << 2), (1 << 7), 7
+	},
+	{
+		"SPC",	NULL,
+		"\\math_pi",
+		"\\large_comma",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		179, 405, 46, 32, 1, 7, (1 << 1), (1 << 7), 7
+	},
+	{
+		"ENTER",	NULL,	NULL,	"\\arrowright NUM",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		238, 405, 46, 32, 0, 7, (1 << 0), (1 << 7), 7
+	},
+};
+#define X49GP_NEWRPL_UI_NR_KEYS (sizeof(x49gp_newrpl_ui_keys) / sizeof(x49gp_newrpl_ui_keys[0]))
+
 static const x49gp_ui_key_t x50g_ui_keys[] =
 {
 	{
@@ -705,6 +1040,341 @@ static const x49gp_ui_key_t x50g_ui_keys[] =
 	},
 };
 #define X50G_UI_NR_KEYS (sizeof(x50g_ui_keys) / sizeof(x50g_ui_keys[0]))
+
+static const x49gp_ui_key_t x50g_newrpl_ui_keys[] =
+{
+	{
+		"F1",	"A",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		  0,   0, 36, 22, 5, 1, (1 << 5), (1 << 1), 1
+	},
+	{
+		"F2",	"B",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		 50,   0, 36, 22, 5, 2, (1 << 5), (1 << 2), 2
+	},
+	{
+		"F3",	"C",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		 99,   0, 36, 22, 5, 3, (1 << 5), (1 << 3), 3
+	},
+	{
+		"F4",	"D",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		149,   0, 36, 22, 5, 4, (1 << 5), (1 << 4), 4
+	},
+	{
+		"F5",	"E",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		198,   0, 36, 22, 5, 5, (1 << 5), (1 << 5), 5
+	},
+	{
+		"F6",	"F",	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK,	12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_TINY, 12.0, UI_LAYOUT_LEFT,
+		247,   0, 36, 22, 5, 6, (1 << 5), (1 << 6), 6
+	},
+	{
+		"",	"G",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		  0,  44, 36, 28, 5, 7, (1 << 5), (1 << 7), 7
+	},
+	{
+		"",	"H",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		 50,  44, 36, 28, 6, 5, (1 << 6), (1 << 5), 5
+	},
+	{
+		"",	"I",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		 99,  44, 36, 28, 6, 6, (1 << 6), (1 << 6), 6
+	},
+	{
+		"",	"J",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		  0,  92, 36, 28, 6, 7, (1 << 6), (1 << 7), 7
+	},
+	{
+		"",	"K",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		 50,  92, 36, 28, 7, 1, (1 << 7), (1 << 1), 1
+	},
+	{
+		"",	"L",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 10.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_SMALL, 10.0, UI_LAYOUT_BELOW,
+		 99,  92, 36, 28, 7, 2, (1 << 7), (1 << 2), 2
+	},
+	{
+		NULL,	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_SILVER, 0.0, 0,
+		UI_SHAPE_BUTTON_ROUND, 0.0, 0,
+		200,  38, 33, 33, 6, 1, (1 << 6), (1 << 1), 1
+	},
+	{
+		NULL,	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_SILVER, 0.0, 0,
+		UI_SHAPE_BUTTON_ROUND, 0.0, 0,
+		164,  66, 33, 33, 6, 2, (1 << 6), (1 << 2), 2
+	},
+	{
+		NULL,	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_SILVER, 0.0, 0,
+		UI_SHAPE_BUTTON_ROUND, 0.0, 0,
+		200,  94, 33, 33, 6, 3, (1 << 6), (1 << 3), 3
+	},
+	{
+		NULL,	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_SILVER, 0.0, 0,
+		UI_SHAPE_BUTTON_ROUND, 0.0, 0,
+		236,  66, 33, 33, 6, 4, (1 << 6), (1 << 4), 4
+	},
+	{
+		"S\\kern-1 T\\kern-1 O\\kern-1\\triangleright",	"M",	"RCL",	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		  0, 141, 46, 28, 4, 1, (1 << 4), (1 << 1), 1
+	},
+	{
+		"EV\\kern-1 AL",	"N",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		 59, 141, 46, 28, 3, 1, (1 << 3), (1 << 1), 1
+	},
+	{
+		"\\tick",	"O",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		119, 141, 46, 28, 2, 1, (1 << 2), (1 << 1), 1
+	},
+	{
+		"M\\kern-1 A\\kern-1 I\\kern-1 N",	"P",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		179, 141, 46, 28, 1, 1, (1 << 1), (1 << 1), 1
+	},
+	{
+		"\\arrowleftdblfull",	NULL,	NULL, "CLEAR",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 0.0, 0,
+		238, 141, 46, 28, 0, 1, (1 << 0), (1 << 1), 1
+	},
+	{
+		"Y\\super x\\/super",	"Q",	"\\math_e\\xsuperior",	"LN",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		  0, 183, 46, 28, 4, 2, (1 << 4), (1 << 2), 2
+	},
+	{
+		"\\radical\\overscore\\kern-7 X",	"R",
+		"\\math_x\\twosuperior",
+		"\\xsuperior\\kern-4\\math_radical\\overscore\\kern-5\\math_y",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		 59, 183, 46, 28, 3, 2, (1 << 3), (1 << 2), 2
+	},
+	{
+		"SIN",	"S",	"ASIN",	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		119, 183, 46, 28, 2, 2, (1 << 2), (1 << 2), 2
+	},
+	{
+		"COS",	"T",	"ACOS",	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		179, 183, 46, 28, 1, 2, (1 << 1), (1 << 2), 2
+	},
+	{
+		"TAN",	"U",	"ATAN",	NULL,	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		238, 183, 46, 28, 0, 2, (1 << 0), (1 << 2), 2
+	},
+	{
+		"EEX",	"V",	"10\\xsuperior",	"LOG",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		  0, 225, 46, 28, 4, 3, (1 << 4), (1 << 3), 3
+	},
+	{
+		"+\\divisionslash\\minus",	"W",
+		"\\math_notequal",
+		"\\math_equal",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		 59, 225, 46, 28, 3, 3, (1 << 3), (1 << 3), 3
+	},
+	{
+		"X",	"X",
+		"\\math_lessequal",
+		"\\math_less",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		119, 225, 46, 28, 2, 3, (1 << 2), (1 << 3), 3
+	},
+	{
+		"1/X",	"Y",
+		"\\math_greaterequal",
+		"\\math_greater",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT,
+		179, 225, 46, 28, 1, 3, (1 << 1), (1 << 3), 3
+	},
+	{
+		"\\divide",	"Z",	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_NORMAL, 12.0, UI_LAYOUT_LEFT_NO_SPACE,
+		238, 225, 46, 28, 0, 3, (1 << 0), (1 << 3), 3
+	},
+	{
+		"ALPHA",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		  0, 267, 46, 32, 0, 0,        0,        0, 4
+	},
+	{
+		"7",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		 59, 267, 46, 32, 3, 4, (1 << 3), (1 << 4), 4
+	},
+	{
+		"8",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		119, 267, 46, 32, 2, 4, (1 << 2), (1 << 4), 4
+	},
+	{
+		"9",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		179, 267, 46, 32, 1, 4, (1 << 1), (1 << 4), 4
+	},
+	{
+		"\\multiply",	NULL,	"[ ]",	"\" \"",	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		238, 267, 46, 32, 0, 4, (1 << 0), (1 << 4), 4
+	},
+	{
+		"\\uparrowleft",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		  0, 313, 46, 32, 0, 0,        0,        0, 5
+	},
+	{
+		"4",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		 59, 313, 46, 32, 3, 5, (1 << 3), (1 << 5), 5
+	},
+	{
+		"5",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		119, 313, 46, 32, 2, 5, (1 << 2), (1 << 5), 5
+	},
+	{
+		"6",	NULL,	NULL,	"UNITS",	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		179, 313, 46, 32, 1, 5, (1 << 1), (1 << 5), 5
+	},
+	{
+		"\\minus",	NULL,	"( )",	"_",	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		238, 313, 46, 32, 0, 5, (1 << 0), (1 << 5), 5
+	},
+	{
+		"\\uparrowright",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_BLACK, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		  0, 359, 46, 32, 0, 0,        0,        0, 6
+	},
+	{
+		"1",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		 59, 359, 46, 32, 3, 6, (1 << 3), (1 << 6), 6
+	},
+	{
+		"2",	NULL,	NULL,	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		119, 359, 46, 32, 2, 6, (1 << 2), (1 << 6), 6
+	},
+	{
+		"3",	NULL,	"\\math_numbersign",	NULL,	NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		179, 359, 46, 32, 1, 6, (1 << 1), (1 << 6), 6
+	},
+	{
+		"+",	NULL,
+		"{ }",
+		"\\guillemotleft\\ \\guillemotright",
+		NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		238, 359, 46, 32, 0, 6, (1 << 0), (1 << 6), 6
+	},
+	{
+		"ON",	NULL,	NULL,	"OFF",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		  0, 405, 46, 32, 0, 0,        0,        0, 0
+	},
+	{
+		"0",	NULL,
+		"\\math_infinity",
+		"\\math_arrowright",
+		NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		 59, 405, 46, 32, 3, 7, (1 << 3), (1 << 7), 7
+	},
+	{
+		"\\bullet",	NULL,
+		": :",
+		"\\math_downarrowleft",
+		NULL,
+		UI_COLOR_WHITE, 19.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		119, 405, 46, 32, 2, 7, (1 << 2), (1 << 7), 7
+	},
+	{
+		"SPC",	NULL,
+		"\\math_pi",
+		"\\large_comma",
+		NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		179, 405, 46, 32, 1, 7, (1 << 1), (1 << 7), 7
+	},
+	{
+		"ENTER",	NULL,	NULL,	"\\arrowright NUM",	NULL,
+		UI_COLOR_WHITE, 12.0, CAIRO_FONT_WEIGHT_BOLD,
+		UI_SHAPE_BUTTON_LARGE, 0.0, 0,
+		238, 405, 46, 32, 0, 7, (1 << 0), (1 << 7), 7
+	},
+};
+#define X50G_NEWRPL_UI_NR_KEYS (sizeof(x50g_newrpl_ui_keys) / sizeof(x50g_newrpl_ui_keys[0]))
 
 static void
 x49gp_ui_color_init(GdkColor *color, u8 red, u8 green, u8 blue)
@@ -1505,6 +2175,22 @@ bitmap_font_draw_text(GdkDrawable *drawable, GdkColor *color,
 	}
 }
 
+void
+x49gp_ui_show_error(x49gp_t *x49gp, const char *text)
+{
+	GtkWidget *dialog;
+	x49gp_ui_t *ui = x49gp->ui;
+
+	dialog = gtk_message_dialog_new(GTK_WINDOW(ui->window),
+					GTK_DIALOG_DESTROY_WITH_PARENT,
+					GTK_MESSAGE_ERROR,
+					GTK_BUTTONS_OK,
+					"%s", text);
+
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+}
+
 static void
 x49gp_ui_choose_file(x49gp_t *x49gp, const char *prompt,
 		     GtkFileChooserAction action, char **filename)
@@ -2205,11 +2891,8 @@ x49gp_window_configure_event(GtkWidget *widget, GdkEventConfigure *event,
 	cairo_set_line_join(cr, CAIRO_LINE_JOIN_MITER);
 
 	switch (ui->calculator) {
-	default:
-		ui->calculator = UI_CALCULATOR_HP49GP;
-		/* fall through */
-
 	case UI_CALCULATOR_HP49GP:
+	case UI_CALCULATOR_HP49GP_NEWRPL:
 		x49gp_ui_draw_text(cr, &widget->style->black,
 				   X49GP_UI_NORMAL_FONT, 15.0, 0.0,
 				   38, 42, 2,
@@ -2235,7 +2918,12 @@ x49gp_window_configure_event(GtkWidget *widget, GdkEventConfigure *event,
 		below_color = UI_COLOR_BLACK;
 		break;
 
+	default:
+		ui->calculator = UI_CALCULATOR_HP50G;
+		/* fall through */
+
 	case UI_CALCULATOR_HP50G:
+	case UI_CALCULATOR_HP50G_NEWRPL:
 		x49gp_ui_draw_text(cr, &widget->style->white,
 				   X49GP_UI_NORMAL_FONT, 15.0, 0.0,
 				   38, 42, 2,
@@ -2265,8 +2953,7 @@ x49gp_window_configure_event(GtkWidget *widget, GdkEventConfigure *event,
 	cairo_destroy(cr);
 
 	for (i = 0; i < ui->nr_buttons; i++) {
-		key = &x49gp_ui_keys[i];
-		key = &x50g_ui_keys[i];
+		key = ui->buttons[i].key;
 
 		if (key->left) {
 			bitmap_font_text_size(&tiny_font, key->left, &wl, &hl, &a, &dl);
@@ -2446,8 +3133,12 @@ gui_load(x49gp_module_t *module, GKeyFile *keyfile)
 	x49gp_module_get_string(module, keyfile, "type", "hp50g", &typestr);
 	if (!strcmp(typestr, "hp49g+")) {
 		ui->calculator = UI_CALCULATOR_HP49GP;
+	} else if (!strcmp(typestr, "hp49g+/newrpl")) {
+		ui->calculator = UI_CALCULATOR_HP49GP_NEWRPL;
 	} else if (!strcmp(typestr, "hp50g")) {
 		ui->calculator = UI_CALCULATOR_HP50G;
+	} else if (!strcmp(typestr, "hp50g/newrpl")) {
+		ui->calculator = UI_CALCULATOR_HP50G_NEWRPL;
 	} else {
 		fprintf(stderr, "Invalid calculator type, reverting to default\n");
 		ui->calculator = UI_CALCULATOR_HP50G;
@@ -2455,11 +3146,16 @@ gui_load(x49gp_module_t *module, GKeyFile *keyfile)
 
 	x49gp_module_get_string(module, keyfile, "name",
 				ui->calculator == UI_CALCULATOR_HP49GP ?
-				"HP 49g+" : "HP 50g",
+				"HP 49g+" :
+				ui->calculator == UI_CALCULATOR_HP49GP_NEWRPL ?
+				"HP 49g+ / newRPL" :
+				ui->calculator == UI_CALCULATOR_HP50G ?
+				"HP 50g" : "HP 50g / newRPL",
 				&(ui->name));
 
 	fd = x49gp_module_open_rodata(module,
-				      ui->calculator == UI_CALCULATOR_HP49GP ?
+				      ui->calculator == UI_CALCULATOR_HP49GP ||
+				      ui->calculator == UI_CALCULATOR_HP49GP_NEWRPL ?
 				      "hp49g+.png" : "hp50g.png",
 				      &imagefile);
 	if (fd < 0) return fd;
@@ -2574,8 +3270,23 @@ gui_load(x49gp_module_t *module, GKeyFile *keyfile)
 
 
 	for (i = 0; i < ui->nr_buttons; i++) {
-		key = &x49gp_ui_keys[i];
-		key = &x50g_ui_keys[i];
+		switch (ui->calculator) {
+		case UI_CALCULATOR_HP49GP:
+			key = &x49gp_ui_keys[i];
+			break;
+		case UI_CALCULATOR_HP49GP_NEWRPL:
+			key = &x49gp_newrpl_ui_keys[i];
+			break;
+		default:
+			ui->calculator = UI_CALCULATOR_HP50G;
+			/* fall through */
+		case UI_CALCULATOR_HP50G:
+			key = &x50g_ui_keys[i];
+			break;
+		case UI_CALCULATOR_HP50G_NEWRPL:
+			key = &x50g_newrpl_ui_keys[i];
+			break;
+		}
 		button = &ui->buttons[i];
 
 		button->x49gp = x49gp;
@@ -2723,7 +3434,11 @@ gui_save(x49gp_module_t *module, GKeyFile *keyfile)
 
 	x49gp_module_set_string(module, keyfile, "type",
 				ui->calculator == UI_CALCULATOR_HP49GP ?
-				"hp49g+" : "hp50g");
+				"hp49g+" :
+				ui->calculator == UI_CALCULATOR_HP49GP_NEWRPL ?
+				"hp49g+/newrpl" :
+				ui->calculator == UI_CALCULATOR_HP50G ?
+				"hp50g" : "hp50g/newrpl");
 	x49gp_module_set_string(module, keyfile, "name", ui->name);
 
 	return 0;
