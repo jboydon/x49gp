@@ -137,7 +137,7 @@ endif
 $(TARGET): $(OBJS) $(VVFATOBJS) $(QEMU_OBJS)
 	$(CC) $(LDFLAGS) $(X49GP_LDFLAGS) -o $@ $(OBJS) $(VVFATOBJS) $(LDLIBS) $(X49GP_LDLIBS)
 
-install: all $(TARGET).desktop $(TARGET).man
+install: all $(TARGET).desktop $(TARGET).man installApp
 	install -D -m 755 $(TARGET) "$(INSTALL_BINARY_DIR)/$(TARGET)"
 	install -D -m 644 $(BOOT49GP) "$(INSTALL_DATA_DIR)/$(BOOT49GP)"
 	install -D -m 644 $(BOOT50G) "$(INSTALL_DATA_DIR)/$(BOOT50G)"
@@ -146,6 +146,13 @@ install: all $(TARGET).desktop $(TARGET).man
 	install -D -m 644 $(TARGET).desktop "$(INSTALL_MENU_DIR)/$(TARGET).desktop"
 	install -D -m 644 $(TARGET).man "$(INSTALL_MAN_DIR)/$(TARGET).1"
 
+installApp: 
+ifeq ($(shell uname),Darwin)
+	cp -R X49gp.app /Applications
+else
+	echo X49gp.app cannot be installed in this OS.
+endif
+	
 $(TARGET).desktop: x49gp.desktop.in
 	perl -p -e "s!TARGET!$(TARGET)!" <x49gp.desktop.in >$@
 
