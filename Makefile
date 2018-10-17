@@ -188,6 +188,7 @@ clean: clean-qemu
 distclean: clean
 	$(MAKE) -C $(QEMU) -f Makefile-small distclean
 	rm -f $(TARGET) $(TARGET).desktop $(TARGET).man
+	rm -rf x49gp.dSYM
 
 depend-libs: $(QEMU)/config-host.h
 
