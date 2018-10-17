@@ -3,7 +3,10 @@
 
 John Boydon
 17th Oct. 2018
+
 MacOS application added.
+
+On MacOS copy X49gp.app into Applications directory.
 
 ------------------------------------------------------------------------
 
