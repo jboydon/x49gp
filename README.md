@@ -6,7 +6,7 @@ John Boydon
 
 MacOS application added.
 
-On MacOS copy X49gp.app into Applications directory.
+On MacOS copy `X49gp.app` into Applications directory.
 
 ------------------------------------------------------------------------
 
