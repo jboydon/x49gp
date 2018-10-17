@@ -4,9 +4,8 @@
 John Boydon
 17th Oct. 2018
 
-MacOS application added.
-
-On MacOS copy `X49gp.app` into Applications directory.
+`X49gp` MacOS application added.
+The command: `make install` on MacOS copies `X49gp.app` into `/Applications` directory.
 
 ------------------------------------------------------------------------
 
