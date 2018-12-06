@@ -49,20 +49,34 @@ QEMU_DEFINES = -DTARGET_ARM -DX49GP \
 # Use this for speed
 DEFINES = $(QEMU_DEFINES)
 
-QEMU=qemu/qemu-git
+QEMU=src/qemu
 
 QEMUMAKE = $(shell if [ "`uname -s`" = "Linux" -a "`uname -m`" = "sun4u" ]; then echo "sparc32 $(MAKE)"; else echo "$(MAKE)"; fi)
 
 QEMU_DIR=$(QEMU)
 QEMU_DIR_BUILD=$(QEMU_DIR)/arm-softmmu
 QEMU_DEFINES+=-DNEED_CPU_H
-QEMU_OBJS = $(QEMU_DIR_BUILD)/exec.o $(QEMU_DIR_BUILD)/translate-all.o $(QEMU_DIR_BUILD)/cpu-exec.o $(QEMU_DIR_BUILD)/translate.o $(QEMU_DIR_BUILD)/fpu/softfloat.o $(QEMU_DIR_BUILD)/op_helper.o $(QEMU_DIR_BUILD)/helper.o $(QEMU_DIR_BUILD)/disas.o $(QEMU_DIR_BUILD)/i386-dis.o $(QEMU_DIR_BUILD)/arm-dis.o $(QEMU_DIR_BUILD)/tcg/tcg.o $(QEMU_DIR_BUILD)/iwmmxt_helper.o $(QEMU_DIR_BUILD)/neon_helper.o
+QEMU_OBJS = \
+	$(QEMU_DIR_BUILD)/exec.o \
+	$(QEMU_DIR_BUILD)/translate-all.o \
+	$(QEMU_DIR_BUILD)/cpu-exec.o \
+	$(QEMU_DIR_BUILD)/translate.o \
+	$(QEMU_DIR_BUILD)/fpu/softfloat.o \
+	$(QEMU_DIR_BUILD)/op_helper.o \
+	$(QEMU_DIR_BUILD)/helper.o \
+	$(QEMU_DIR_BUILD)/disas.o \
+	$(QEMU_DIR_BUILD)/i386-dis.o \
+	$(QEMU_DIR_BUILD)/arm-dis.o \
+	$(QEMU_DIR_BUILD)/tcg/tcg.o \
+	$(QEMU_DIR_BUILD)/iwmmxt_helper.o \
+	$(QEMU_DIR_BUILD)/neon_helper.o
+	
 X49GP_LDFLAGS =
 X49GP_LIBS = $(QEMU_OBJS)
 QEMU_INCDIR=$(QEMU_DIR)
 QEMU_INC=-I$(QEMU_INCDIR)/target-arm -I$(QEMU_INCDIR) -I$(QEMU_INCDIR)/fpu -I$(QEMU_INCDIR)/arm-softmmu
 
-X49GP_INCLUDES = -Iinclude -Ibitmaps $(QEMU_INC)
+X49GP_INCLUDES = -Isrc/include -Ibitmaps $(QEMU_INC)
 
 INCLUDES = $(GDB_INCLUDES) $(X49GP_INCLUDES)
 
@@ -71,6 +85,7 @@ INSTALL_BINARY_DIR = "$(INSTALL_PREFIX)"/bin
 INSTALL_DATA_DIR = "$(INSTALL_PREFIX)"/share/$(TARGET)
 INSTALL_MENU_DIR = "$(INSTALL_PREFIX)"/share/applications
 INSTALL_MAN_DIR = "$(INSTALL_PREFIX)/share/man/man1"
+
 DEFINES += -DX49GP_DATADIR=\"$(INSTALL_DATA_DIR)\"
 
 CC = gcc
@@ -81,6 +96,8 @@ RANLIB = ranlib
 CC += $(shell if [ "`uname -m`" = "sparc64" -o "`uname -m`" = "sun4u" ]; then echo "-mcpu=ultrasparc -m32"; fi)
 
 COCOA_LIBS=$(shell if [ "`uname -s`" = "Darwin" ]; then echo "-F/System/Library/Frameworks -framework Cocoa -framework IOKit"; fi)
+
+INSTALL=$(shell if [ "`uname -s`" = "Darwin" ]; then echo "ginstall"; else echo "install"; fi)
 
 X49GP_CFLAGS = -O2 -Wall -Werror $(DEBUG) $(INCLUDES) $(DEFINES)
 X49GP_LDFLAGS += $(DEBUG) $(GDB_LDFLAGS)
@@ -93,39 +110,52 @@ X49GP_LDLIBS += $(shell pkg-config --libs gtk+-2.0) -lz -lm
 
 LIBS = $(QEMU)
 
-SRCS = main.c module.c flash.c sram.c s3c2410.c \
-	s3c2410_sram.c \
-	s3c2410_memc.c \
-	s3c2410_intc.c \
-	s3c2410_power.c \
-	s3c2410_lcd.c \
-	s3c2410_nand.c \
-	s3c2410_uart.c \
-	s3c2410_timer.c \
-	s3c2410_usbdev.c \
-	s3c2410_watchdog.c \
-	s3c2410_io_port.c \
-	s3c2410_rtc.c \
-	s3c2410_adc.c \
-	s3c2410_spi.c \
-	s3c2410_sdi.c \
-	s3c2410_arm.c \
-	ui.c timer.c tiny_font.c symbol.c \
-	gdbstub.c block.c
+SRCS = \
+	src/main.c \
+	src/module.c \
+	src/flash.c \
+	src/sram.c \
+	src/s3c2410.c \
+	src/s3c2410_sram.c \
+	src/s3c2410_memc.c \
+	src/s3c2410_intc.c \
+	src/s3c2410_power.c \
+	src/s3c2410_lcd.c \
+	src/s3c2410_nand.c \
+	src/s3c2410_uart.c \
+	src/s3c2410_timer.c \
+	src/s3c2410_usbdev.c \
+	src/s3c2410_watchdog.c \
+	src/s3c2410_io_port.c \
+	src/s3c2410_rtc.c \
+	src/s3c2410_adc.c \
+	src/s3c2410_spi.c \
+	src/s3c2410_sdi.c \
+	src/s3c2410_arm.c \
+	src/ui.c \
+	src/timer.c \
+	src/tiny_font.c \
+	src/symbol.c \
+	src/gdbstub.c \
+	src/block.c
 
 OBJS = $(SRCS:.c=.o)
 
 # TEMPO hack
-VVFATOBJS = block-vvfat.o \
-	block-qcow.o \
-	block-raw.o
-
-VVFATOBJS += $(QEMU_DIR)/cutils.o
+VVFATOBJS = \
+	src/block-vvfat.o \
+	src/block-qcow.o \
+	src/block-raw.o	\
+	$(QEMU_DIR)/cutils.o
 
 TARGET = x49gp
 TARGET_ALLCAPS = X49GP
 
 all: do-it-all
+
+lib: $(QEMU_OBJS)
+	ar rcs libqemu.a $(QEMU_OBJS)
+
 
 ifeq (.depend,$(wildcard .depend))
 include .depend
@@ -135,29 +165,29 @@ do-it-all: depend-and-build
 endif
 
 $(TARGET): $(OBJS) $(VVFATOBJS) $(QEMU_OBJS)
-	$(CC) $(LDFLAGS) $(X49GP_LDFLAGS) -o $@ $(OBJS) $(VVFATOBJS) $(LDLIBS) $(X49GP_LDLIBS)
+	mkdir -p bin
+	$(CC) $(LDFLAGS) $(X49GP_LDFLAGS) -o bin/$@ $(OBJS) $(VVFATOBJS) $(LDLIBS) $(X49GP_LDLIBS)
 
 install: all $(TARGET).desktop $(TARGET).man installApp
-	install -D -m 755 $(TARGET) "$(INSTALL_BINARY_DIR)/$(TARGET)"
-	install -D -m 644 $(BOOT49GP) "$(INSTALL_DATA_DIR)/$(BOOT49GP)"
-	install -D -m 644 $(BOOT50G) "$(INSTALL_DATA_DIR)/$(BOOT50G)"
-	install -D -m 644 $(IMAGE49GP) "$(INSTALL_DATA_DIR)/$(IMAGE49GP)"
-	install -D -m 644 $(IMAGE50G) "$(INSTALL_DATA_DIR)/$(IMAGE50G)"
-	install -D -m 644 $(TARGET).desktop "$(INSTALL_MENU_DIR)/$(TARGET).desktop"
-	install -D -m 644 $(TARGET).man "$(INSTALL_MAN_DIR)/$(TARGET).1"
+	$(INSTALL) -D -m 755 bin/$(TARGET) "$(INSTALL_BINARY_DIR)/$(TARGET)"
+	$(INSTALL) -D -m 644 rom/$(BOOT49GP) "$(INSTALL_DATA_DIR)/$(BOOT49GP)"
+	$(INSTALL) -D -m 644 rom/$(BOOT50G) "$(INSTALL_DATA_DIR)/$(BOOT50G)"
+	$(INSTALL) -D -m 644 pictures/$(IMAGE49GP) "$(INSTALL_DATA_DIR)/$(IMAGE49GP)"
+	$(INSTALL) -D -m 644 pictures/$(IMAGE50G) "$(INSTALL_DATA_DIR)/$(IMAGE50G)"
+	$(INSTALL) -D -m 644 $(TARGET).man "$(INSTALL_MAN_DIR)/$(TARGET).1"
 
 installApp: 
 ifeq ($(shell uname),Darwin)
-	cp -R X49gp.app /Applications
-else
-	echo X49gp.app cannot be installed in this OS.
+	cp -R macos/X49gp.app /Applications
+else	
+	install -D -m 644 $(TARGET).desktop "$(INSTALL_MENU_DIR)/$(TARGET).desktop"
 endif
 	
-$(TARGET).desktop: x49gp.desktop.in
-	perl -p -e "s!TARGET!$(TARGET)!" <x49gp.desktop.in >$@
+$(TARGET).desktop: src/x49gp.desktop.in
+	perl -p -e "s!TARGET!$(TARGET)!" <src/x49gp.desktop.in >$@
 
-$(TARGET).man: x49gp.man.in
-	perl -p -e "s!TARGET_ALLCAPS!$(TARGET_ALLCAPS)!;" -e "s!TARGET!$(TARGET)!" <x49gp.man.in >$@
+$(TARGET).man: man/x49gp.man.in
+	perl -p -e "s!TARGET_ALLCAPS!$(TARGET_ALLCAPS)!;" -e "s!TARGET!$(TARGET)!" <man/x49gp.man.in >$@
 
 sdcard:
 ifeq ($(shell uname),Darwin)
@@ -175,22 +205,23 @@ $(QEMU)/config-host.h:
 	./configure-small --extra-cflags=-DX49GP; \
 	$(QEMUMAKE) -f Makefile-small )
 
-$(QEMU_OBJS): _dir_qemu
+$(QEMU_OBJS): _dir_qemu 
 
-_dir_qemu: dummy
+_dir_qemu: dummy 
 	+$(QEMUMAKE) -C $(QEMU) -f Makefile-small
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(X49GP_CFLAGS) -o $@ -c $<
 
-block-vvfat.o: block-vvfat.c
+src/block-vvfat.o: src/block-vvfat.c
 	$(CC) $(CFLAGS) $(X49GP_CFLAGS) -fno-aggressive-loop-optimizations -o $@ -c $<
 
 clean-qemu:
 	$(MAKE) -C $(QEMU) -f Makefile-small clean
 
 clean: clean-qemu
-	rm -f *.o core *~ .depend
+	rm -f src/*.o src/core core src/*~ *~ src/.depend .depend libqemu.a
+	rm -rf bin
 
 distclean: clean
 	$(MAKE) -C $(QEMU) -f Makefile-small distclean
